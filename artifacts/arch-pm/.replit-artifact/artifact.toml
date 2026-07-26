@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Architecture Project Manager"
+version = "1.0.0"
+id = "artifacts/arch-pm"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25565
+
+[services.development]
+run = "pnpm --filter @workspace/arch-pm run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/arch-pm", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/arch-pm/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25565"
+BASE_PATH = "/"
