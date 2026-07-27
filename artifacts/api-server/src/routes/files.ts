@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, and, sql, desc, alias } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db, filesTable, fileUploadLogsTable, usersTable, tasksTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
