@@ -13,6 +13,8 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, ArrowLeft, MoreVertical, Calendar, Clock, FileText, CheckCircle2, ChevronRight, MessageSquare, Trash2, Edit } from "lucide-react";
+import { NotesSection } from "@/components/notes-section";
+import { useProjectNotes, useCreateProjectNote, projectNotesKey } from "@/hooks/use-notes";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +56,9 @@ export default function ProjectDetail() {
   const createCategoryMutation = useCreateCategory();
   const updateTaskMutation = useUpdateTask();
   const deleteTaskMutation = useDeleteTask();
+
+  const { data: notes, isLoading: loadingNotes } = useProjectNotes(projectId);
+  const createNote = useCreateProjectNote(projectId);
 
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -345,6 +350,17 @@ export default function ProjectDetail() {
                 </div>
               )
             })}
+
+            {/* Project-level Notes */}
+            <NotesSection
+              notes={notes}
+              isLoading={loadingNotes}
+              onPost={(content) => createNote.mutate(content)}
+              isPosting={createNote.isPending}
+              invalidateKey={projectNotesKey(projectId)}
+              title="Project Notes"
+              placeholder="Add a project-level note or comment..."
+            />
           </div>
         </div>
       </div>

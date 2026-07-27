@@ -3,22 +3,53 @@ import { eq, and, sql } from "drizzle-orm";
 import { db, filesTable, usersTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
-import {
-  UploadFileBody,
-  UploadFileParams,
-  ListFilesParams,
-  GetFileHistoryParams,
-} from "@workspace/api-zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { createHash } from "crypto";
 
 const router: IRouter = Router();
 
+// ── Storage ─────────────────────────────────────────────────────────────────
+
+const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const hash = createHash("md5").update(Date.now() + file.originalname).digest("hex").slice(0, 8);
+    const ext = path.extname(file.originalname);
+    cb(null, `${hash}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
+});
+
+// Serve uploaded files
+router.get("/uploads/:filename", (req, res): void => {
+  const filePath = path.join(UPLOADS_DIR, path.basename(req.params.filename));
+  if (!fs.existsSync(filePath)) { res.status(404).json({ error: "Not found" }); return; }
+  res.sendFile(filePath);
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseIntParam(val: unknown): number | null {
+  const n = Number(val);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+// ── List files (latest version per name) ─────────────────────────────────────
+
 router.get("/projects/:projectId/tasks/:taskId/files", requireAuth, async (req, res): Promise<void> => {
-  const params = ListFilesParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-  // Return latest version of each file name
+  const projectId = parseIntParam(req.params.projectId);
+  const taskId = parseIntParam(req.params.taskId);
+  if (!projectId || !taskId) { res.status(400).json({ error: "Invalid params" }); return; }
+
   const files = await db
     .select({
       id: filesTable.id,
@@ -35,74 +66,96 @@ router.get("/projects/:projectId/tasks/:taskId/files", requireAuth, async (req, 
     .from(filesTable)
     .leftJoin(usersTable, eq(filesTable.uploadedById, usersTable.id))
     .where(
-      sql`${filesTable.taskId} = ${params.data.taskId} AND ${filesTable.version} = (
-        SELECT MAX(f2.version) FROM files f2 WHERE f2.task_id = ${filesTable.taskId} AND f2.name = ${filesTable.name}
+      sql`${filesTable.taskId} = ${taskId} AND ${filesTable.version} = (
+        SELECT MAX(f2.version) FROM files f2
+        WHERE f2.task_id = ${filesTable.taskId} AND f2.name = ${filesTable.name}
       )`
     )
     .orderBy(filesTable.name);
+
   res.json(files);
 });
 
-router.post("/projects/:projectId/tasks/:taskId/files", requireAuth, async (req, res): Promise<void> => {
-  const params = UploadFileParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
+// ── Upload file (multipart OR JSON fallback) ──────────────────────────────────
+
+router.post(
+  "/projects/:projectId/tasks/:taskId/files",
+  requireAuth,
+  upload.single("file"),
+  async (req, res): Promise<void> => {
+    const projectId = parseIntParam(req.params.projectId);
+    const taskId = parseIntParam(req.params.taskId);
+    if (!projectId || !taskId) { res.status(400).json({ error: "Invalid params" }); return; }
+
+    let name: string;
+    let mimeType: string;
+    let size: number;
+    let url: string;
+
+    if (req.file) {
+      // Real multipart upload
+      name = req.file.originalname;
+      mimeType = req.file.mimetype || "application/octet-stream";
+      size = req.file.size;
+      const baseUrl = process.env.API_BASE_URL ?? "";
+      url = `${baseUrl}/api/uploads/${req.file.filename}`;
+    } else {
+      // JSON fallback (existing behaviour)
+      const body = req.body as any;
+      if (!body?.name || typeof body.name !== "string") {
+        res.status(400).json({ error: "name is required" }); return;
+      }
+      name = body.name;
+      mimeType = body.mimeType ?? "application/octet-stream";
+      size = Number(body.size) || 0;
+      url = body.url ?? "";
+    }
+
+    // Version calculation
+    const [versionRow] = await db
+      .select({ maxVersion: sql<number>`COALESCE(MAX(${filesTable.version}), 0)` })
+      .from(filesTable)
+      .where(and(eq(filesTable.taskId, taskId), eq(filesTable.name, name)));
+
+    const nextVersion = (versionRow?.maxVersion ?? 0) + 1;
+
+    const [file] = await db.insert(filesTable).values({
+      name,
+      mimeType,
+      size,
+      url,
+      version: nextVersion,
+      taskId,
+      uploadedById: req.user!.userId,
+    }).returning();
+
+    await logActivity({
+      action: nextVersion > 1 ? `uploaded file version ${nextVersion}` : "uploaded file",
+      entityType: "file",
+      entityId: file.id,
+      entityName: file.name,
+      projectId,
+      userId: req.user!.userId,
+    });
+
+    res.status(201).json({ ...file, uploadedByName: null });
   }
-  const parsed = UploadFileBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+);
 
-  // Calculate next version for this file name in this task
-  const [versionRow] = await db
-    .select({ maxVersion: sql<number>`COALESCE(MAX(${filesTable.version}), 0)` })
-    .from(filesTable)
-    .where(and(eq(filesTable.taskId, params.data.taskId), eq(filesTable.name, parsed.data.name)));
-
-  const nextVersion = (versionRow?.maxVersion ?? 0) + 1;
-
-  const [file] = await db.insert(filesTable).values({
-    name: parsed.data.name,
-    mimeType: parsed.data.mimeType,
-    size: parsed.data.size,
-    url: parsed.data.url,
-    version: nextVersion,
-    taskId: params.data.taskId,
-    uploadedById: req.user!.userId,
-  }).returning();
-
-  await logActivity({
-    action: nextVersion > 1 ? `uploaded file version ${nextVersion}` : "uploaded file",
-    entityType: "file",
-    entityId: file.id,
-    entityName: file.name,
-    projectId: params.data.projectId,
-    userId: req.user!.userId,
-  });
-
-  res.status(201).json({ ...file, uploadedByName: null });
-});
+// ── File version history ──────────────────────────────────────────────────────
 
 router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAuth, async (req, res): Promise<void> => {
-  const params = GetFileHistoryParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+  const taskId = parseIntParam(req.params.taskId);
+  const fileId = parseIntParam(req.params.fileId);
+  if (!taskId || !fileId) { res.status(400).json({ error: "Invalid params" }); return; }
 
-  // Find the file name for this fileId
-  const [baseFile] = await db.select({ name: filesTable.name, taskId: filesTable.taskId })
+  const [baseFile] = await db
+    .select({ name: filesTable.name, taskId: filesTable.taskId })
     .from(filesTable)
-    .where(eq(filesTable.id, params.data.fileId));
+    .where(eq(filesTable.id, fileId));
 
-  if (!baseFile) {
-    res.status(404).json({ error: "File not found" });
-    return;
-  }
+  if (!baseFile) { res.status(404).json({ error: "File not found" }); return; }
 
-  // Return all versions with that name in the same task
   const versions = await db
     .select({
       id: filesTable.id,

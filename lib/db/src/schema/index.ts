@@ -4,3 +4,4 @@ export * from "./categories";
 export * from "./tasks";
 export * from "./files";
 export * from "./activityLogs";
+export * from "./notes";
