@@ -1162,6 +1162,15 @@ components:
         createdAt:
           type: string
           format: date-time
+        fileId:
+          type: ["integer", "null"]
+        removedAt:
+          type: ["string", "null"]
+          format: date-time
+        removedById:
+          type: ["integer", "null"]
+        removedByName:
+          type: ["string", "null"]
 
     FileInput:
       type: object

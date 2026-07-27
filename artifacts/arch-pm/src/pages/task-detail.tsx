@@ -569,12 +569,16 @@ export default function TaskDetail() {
               ) : uploadHistory && uploadHistory.length > 0 ? (
                 <div className="relative">
                   <div className="absolute left-[11px] top-3 bottom-3 w-px bg-border" aria-hidden="true" />
-                  {[...uploadHistory].map((upload, index) => (
+                  {[...uploadHistory].map((upload) => (
                     <div key={upload.id} className="relative flex gap-4 py-3">
-                      <div className="relative z-10 mt-1.5 w-6 h-6 rounded-full bg-background border-2 border-primary flex items-center justify-center shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
+                      <div className={`relative z-10 mt-1.5 w-6 h-6 rounded-full bg-background border-2 flex items-center justify-center shrink-0 ${
+                        upload.removedAt ? "border-destructive" : "border-primary"
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full ${upload.removedAt ? "bg-destructive" : "bg-primary"}`} />
                       </div>
-                      <div className="min-w-0 flex-1 rounded-lg border border-border bg-secondary/20 p-3">
+                      <div className={`min-w-0 flex-1 rounded-lg border border-border p-3 ${
+                        upload.removedAt ? "bg-destructive/5" : "bg-secondary/20"
+                      }`}>
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="font-bold text-sm truncate" title={upload.name}>
@@ -585,6 +589,13 @@ export default function TaskDetail() {
                               {" · "}
                               {format(new Date(upload.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </p>
+                            {upload.removedAt && (
+                              <p className="text-[11px] font-mono text-destructive mt-1">
+                                Removed by {upload.removedByName || "an administrator"}
+                                {" · "}
+                                {format(new Date(upload.removedAt), "MMM d, yyyy 'at' h:mm a")}
+                              </p>
+                            )}
                           </div>
                           <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
                             v{upload.version}
@@ -594,7 +605,7 @@ export default function TaskDetail() {
                           <span>{formatBytes(upload.size)}</span>
                           <span className="text-border" aria-hidden="true">·</span>
                           <span className="truncate">upload-{String(upload.id).padStart(4, "0")}</span>
-                          {fileUrl(upload.url) ? (
+                          {!upload.removedAt && fileUrl(upload.url) ? (
                             <a
                               href={fileUrl(upload.url) ?? undefined}
                               target="_blank"
@@ -604,13 +615,15 @@ export default function TaskDetail() {
                             >
                               <Download className="w-3 h-3" /> Download
                             </a>
+                          ) : upload.removedAt ? (
+                            <span className="ml-auto text-destructive">Removed from files</span>
                           ) : (
                             <span className="ml-auto">Download unavailable</span>
                           )}
-                          {(upload.uploadedById === user?.id || user?.role === "admin") && (
+                          {!upload.removedAt && upload.fileId && (upload.uploadedById === user?.id || user?.role === "admin") && (
                             <button
                               type="button"
-                              onClick={() => handleDeleteFile(upload.id, upload.name)}
+                              onClick={() => handleDeleteFile(upload.fileId!, upload.name)}
                               disabled={deleteFileMutation.isPending}
                               className="text-xs font-bold text-muted-foreground flex items-center gap-1 hover:text-destructive disabled:opacity-50"
                             >

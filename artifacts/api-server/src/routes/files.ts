@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, and, sql, desc } from "drizzle-orm";
-import { db, filesTable, usersTable, tasksTable } from "@workspace/db";
+import { eq, and, sql, desc, alias } from "drizzle-orm";
+import { db, filesTable, fileUploadLogsTable, usersTable, tasksTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
 import multer from "multer";
@@ -135,15 +135,32 @@ router.post(
 
     const nextVersion = (versionRow?.maxVersion ?? 0) + 1;
 
-    const [file] = await db.insert(filesTable).values({
-      name,
-      mimeType,
-      size,
-      url,
-      version: nextVersion,
-      taskId,
-      uploadedById: req.user!.userId,
-    }).returning();
+    const [file] = await db.transaction(async (tx) => {
+      const [createdFile] = await tx.insert(filesTable).values({
+        name,
+        mimeType,
+        size,
+        url,
+        version: nextVersion,
+        taskId,
+        uploadedById: req.user!.userId,
+      }).returning();
+
+      await tx.insert(fileUploadLogsTable).values({
+        fileId: createdFile.id,
+        taskId,
+        projectId,
+        name,
+        mimeType,
+        size,
+        url,
+        version: nextVersion,
+        uploadedById: req.user!.userId,
+        createdAt: createdFile.createdAt,
+      });
+
+      return [createdFile];
+    });
 
     await logActivity({
       action: nextVersion > 1 ? `uploaded file version ${nextVersion}` : "uploaded file",
@@ -191,7 +208,14 @@ router.delete("/projects/:projectId/tasks/:taskId/files/:fileId", requireAuth, a
     return;
   }
 
-  await db.delete(filesTable).where(eq(filesTable.id, fileId));
+  const removedAt = new Date();
+  await db.transaction(async (tx) => {
+    await tx
+      .update(fileUploadLogsTable)
+      .set({ removedAt, removedById: req.user!.userId })
+      .where(eq(fileUploadLogsTable.fileId, fileId));
+    await tx.delete(filesTable).where(eq(filesTable.id, fileId));
+  });
 
   // Multipart uploads are stored locally. JSON fallback URLs may point to
   // external storage, so only remove files served by this app.
@@ -230,9 +254,11 @@ router.get("/projects/:projectId/tasks/:taskId/files/history", requireAuth, asyn
     return;
   }
 
+  const removedUsers = alias(usersTable, "removed_users");
   const uploads = await db
     .select({
       id: filesTable.id,
+      fileId: filesTable.id,
       name: filesTable.name,
       mimeType: filesTable.mimeType,
       size: filesTable.size,
@@ -242,13 +268,47 @@ router.get("/projects/:projectId/tasks/:taskId/files/history", requireAuth, asyn
       uploadedById: filesTable.uploadedById,
       uploadedByName: usersTable.name,
       createdAt: filesTable.createdAt,
+      removedAt: sql<Date | null>`NULL`,
+      removedById: sql<number | null>`NULL`,
+      removedByName: sql<string | null>`NULL`,
     })
     .from(filesTable)
     .leftJoin(usersTable, eq(filesTable.uploadedById, usersTable.id))
     .where(eq(filesTable.taskId, taskId))
     .orderBy(desc(filesTable.createdAt), desc(filesTable.id));
 
-  res.json(uploads);
+  const loggedUploads = await db
+    .select({
+      id: fileUploadLogsTable.id,
+      fileId: fileUploadLogsTable.fileId,
+      name: fileUploadLogsTable.name,
+      mimeType: fileUploadLogsTable.mimeType,
+      size: fileUploadLogsTable.size,
+      version: fileUploadLogsTable.version,
+      url: fileUploadLogsTable.url,
+      taskId: fileUploadLogsTable.taskId,
+      uploadedById: fileUploadLogsTable.uploadedById,
+      uploadedByName: usersTable.name,
+      createdAt: fileUploadLogsTable.createdAt,
+      removedAt: fileUploadLogsTable.removedAt,
+      removedById: fileUploadLogsTable.removedById,
+      removedByName: removedUsers.name,
+    })
+    .from(fileUploadLogsTable)
+    .leftJoin(usersTable, eq(fileUploadLogsTable.uploadedById, usersTable.id))
+    .leftJoin(removedUsers, eq(fileUploadLogsTable.removedById, removedUsers.id))
+    .where(eq(fileUploadLogsTable.taskId, taskId))
+    .orderBy(desc(fileUploadLogsTable.createdAt), desc(fileUploadLogsTable.id));
+
+  const loggedFileIds = new Set(loggedUploads.map(upload => upload.fileId).filter((id): id is number => id !== null));
+  const legacyUploads = uploads
+    .filter(upload => !loggedFileIds.has(upload.fileId))
+    .map(upload => ({ ...upload, id: -upload.id }));
+
+  res.json([...loggedUploads, ...legacyUploads].sort((a, b) => {
+    const createdAtDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return createdAtDiff || b.id - a.id;
+  }));
 });
 
 router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAuth, async (req, res): Promise<void> => {
