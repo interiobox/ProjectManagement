@@ -107,6 +107,7 @@ export default function Login() {
               <input
                 {...form.register("email")}
                 type="email"
+                autoComplete="username"
                 className="w-full bg-card border-2 border-border p-4 rounded-md focus:border-primary focus:ring-0 outline-none transition-colors"
                 placeholder="admin@archfirm.com"
                 data-testid="input-email"
@@ -123,6 +124,7 @@ export default function Login() {
               <input
                 {...form.register("password")}
                 type="password"
+                autoComplete="current-password"
                 className="w-full bg-card border-2 border-border p-4 rounded-md focus:border-primary focus:ring-0 outline-none transition-colors"
                 placeholder="••••••••"
                 data-testid="input-password"

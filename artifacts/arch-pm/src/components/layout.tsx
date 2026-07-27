@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { LayoutDashboard, FolderKanban, Rss, Users, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/global-search";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -81,6 +82,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col pb-[72px] md:pb-0 h-[100dvh] overflow-y-auto">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
+          <GlobalSearch />
+        </header>
         {children}
       </main>
 

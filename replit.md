@@ -4,11 +4,11 @@ A project management app for architecture firms — track projects, tasks, RFIs,
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- The managed workflows start the frontend at `/`, the API at `/api`, and the component preview at `/__mockup`.
+- `pnpm --filter @workspace/db run push` — initialize or update the development database schema before the first API start
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string (auto-provisioned by Replit; do not set manually)
 - Default login: `admin@archfirm.com` / `admin123` (seeded on first setup)
 
