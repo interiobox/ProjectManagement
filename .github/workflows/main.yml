@@ -33,6 +33,9 @@ jobs:
           PORT: '3000'
           BASE_PATH: '/ProjectManagement/'
       
+      - name: Create 404.html for client-side routing
+        run: cp ./artifacts/arch-pm/dist/index.html ./artifacts/arch-pm/dist/404.html
+      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
