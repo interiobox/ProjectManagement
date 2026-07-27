@@ -47,31 +47,4 @@ jobs:
       - name: Run build
         run: pnpm run build
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db        with:
-          node-version: '20'
-          cache: 'pnpm'
-      
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      
-      - name: Run typecheck
-        run: pnpm run typecheck
-      
-      - name: Run build
-        run: pnpm run build
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Run typecheck
-        run: pnpm run typecheck
-      
-      - name: Run build
-        run: pnpm run build
-        env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
