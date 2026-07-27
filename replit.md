@@ -1,6 +1,6 @@
-# [Project name]
+# ArchPM
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A project management app for architecture firms — track projects, tasks, RFIs, and site progress with role-based access for admins and team members.
 
 ## Run & Operate
 
@@ -9,7 +9,8 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (auto-provisioned by Replit; do not set manually)
+- Default login: `admin@archfirm.com` / `admin123` (seeded on first setup)
 
 ## Stack
 
