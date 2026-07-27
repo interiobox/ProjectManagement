@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { db, tasksTable, usersTable, categoriesTable, filesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
@@ -49,7 +49,7 @@ router.get("/projects/:projectId/tasks", requireAuth, async (req, res): Promise<
   const createdByIds = [...new Set(tasks.map(t => t.createdById))];
   const creators = createdByIds.length
     ? await db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable).where(
-        sql`${usersTable.id} = ANY(${createdByIds}::int[])`
+        inArray(usersTable.id, createdByIds)
       )
     : [];
   const creatorMap = Object.fromEntries(creators.map(c => [c.id, c.name]));
