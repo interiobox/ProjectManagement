@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, sql } from "drizzle-orm";
-import { db, filesTable, usersTable } from "@workspace/db";
+import { db, filesTable, usersTable, tasksTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
 import multer from "multer";
@@ -43,12 +43,24 @@ function parseIntParam(val: unknown): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+async function taskBelongsToProject(taskId: number, projectId: number): Promise<boolean> {
+  const [task] = await db
+    .select({ id: tasksTable.id })
+    .from(tasksTable)
+    .where(and(eq(tasksTable.id, taskId), eq(tasksTable.projectId, projectId)));
+  return Boolean(task);
+}
+
 // ── List files (latest version per name) ─────────────────────────────────────
 
 router.get("/projects/:projectId/tasks/:taskId/files", requireAuth, async (req, res): Promise<void> => {
   const projectId = parseIntParam(req.params.projectId);
   const taskId = parseIntParam(req.params.taskId);
   if (!projectId || !taskId) { res.status(400).json({ error: "Invalid params" }); return; }
+  if (!await taskBelongsToProject(taskId, projectId)) {
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
 
   const files = await db
     .select({
@@ -86,6 +98,10 @@ router.post(
     const projectId = parseIntParam(req.params.projectId);
     const taskId = parseIntParam(req.params.taskId);
     if (!projectId || !taskId) { res.status(400).json({ error: "Invalid params" }); return; }
+    if (!await taskBelongsToProject(taskId, projectId)) {
+      res.status(404).json({ error: "Task not found" });
+      return;
+    }
 
     let name: string;
     let mimeType: string;
@@ -152,6 +168,12 @@ router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAu
   const taskId = parseIntParam(req.params.taskId);
   const fileId = parseIntParam(req.params.fileId);
   if (!taskId || !fileId) { res.status(400).json({ error: "Invalid params" }); return; }
+  const projectId = parseIntParam(req.params.projectId);
+  if (!projectId) { res.status(400).json({ error: "Invalid params" }); return; }
+  if (!await taskBelongsToProject(taskId, projectId)) {
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
 
   const [baseFile] = await db
     .select({ name: filesTable.name, taskId: filesTable.taskId })

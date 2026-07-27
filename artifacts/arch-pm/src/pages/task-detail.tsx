@@ -397,16 +397,19 @@ export default function TaskDetail() {
                               v{file.version}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5 text-[11px] font-mono text-muted-foreground">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-[11px] font-mono text-muted-foreground">
                             <span>{formatBytes(file.size)}</span>
-                            <span>·</span>
-                            <span>{format(new Date(file.createdAt), "MMM d")}</span>
-                            {file.uploadedByName && (
-                              <>
-                                <span>·</span>
-                                <span>{file.uploadedByName.split(" ")[0]}</span>
-                              </>
-                            )}
+                            <span aria-hidden="true">·</span>
+                            <span>
+                              Uploaded by{" "}
+                              <span className="font-semibold text-foreground">
+                                {file.uploadedByName || "Unknown user"}
+                              </span>
+                            </span>
+                            <span aria-hidden="true">·</span>
+                            <span title={format(new Date(file.createdAt), "PPpp")}>
+                              {format(new Date(file.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                            </span>
                           </div>
                           <div className="flex items-center gap-3 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <a
