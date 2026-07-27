@@ -11,6 +11,7 @@ import ProjectDetail from '@/pages/project-detail';
 import TaskDetail from '@/pages/task-detail';
 import AdminUsers from '@/pages/admin-users';
 import MyFeed from '@/pages/my-feed';
+import Settings from '@/pages/settings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,7 +63,7 @@ function Router() {
         <ProtectedRoute component={AdminUsers} adminOnly />
       </Route>
       <Route path="/settings">
-        <ProtectedRoute component={AdminUsers} adminOnly />
+        <ProtectedRoute component={Settings} adminOnly />
       </Route>
       <Route component={NotFound} />
     </Switch>

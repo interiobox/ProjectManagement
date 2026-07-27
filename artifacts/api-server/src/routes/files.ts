@@ -1,9 +1,10 @@
 import { Router, type IRouter } from "express";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { db, filesTable, fileUploadLogsTable, usersTable, tasksTable } from "@workspace/db";
+import { db, filesTable, fileUploadLogsTable, usersTable, tasksTable, projectsTable, googleDriveTokensTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
+import { getAuthorizedDrive, uploadFileToDrive } from "../lib/google-drive";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -11,22 +12,14 @@ import { createHash } from "crypto";
 
 const router: IRouter = Router();
 
-// ── Storage ─────────────────────────────────────────────────────────────────
+// ── Storage ──────────────────────────────────────────────────────────────────
+// Use memory storage so we can route the buffer to Drive or to local disk.
 
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
-    const hash = createHash("md5").update(Date.now() + file.originalname).digest("hex").slice(0, 8);
-    const ext = path.extname(file.originalname);
-    cb(null, `${hash}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
 });
 
@@ -110,12 +103,54 @@ router.post(
     let url: string;
 
     if (req.file) {
-      // Real multipart upload
+      // Real multipart upload — try Drive first, fall back to local disk
       name = req.file.originalname;
       mimeType = req.file.mimetype || "application/octet-stream";
       size = req.file.size;
-      const baseUrl = process.env.API_BASE_URL ?? "";
-      url = `${baseUrl}/api/uploads/${req.file.filename}`;
+
+      const drive = await getAuthorizedDrive();
+      if (drive) {
+        // Look up project + task names for Drive folder structure
+        const [projectRow] = await db
+          .select({ name: projectsTable.name })
+          .from(projectsTable)
+          .where(eq(projectsTable.id, projectId));
+
+        const [taskRow] = await db
+          .select({ title: tasksTable.title })
+          .from(tasksTable)
+          .where(eq(tasksTable.id, taskId));
+
+        // Retrieve cached root folder id (so we don't recreate the ArchPM folder each time)
+        const [tokenRow] = await db.select().from(googleDriveTokensTable).limit(1);
+
+        const result = await uploadFileToDrive(drive, {
+          fileName: name,
+          mimeType,
+          buffer: req.file.buffer,
+          projectName: projectRow?.name ?? `project-${projectId}`,
+          taskName: taskRow?.title ?? `task-${taskId}`,
+          rootFolderId: tokenRow?.driveRootFolderId,
+        });
+
+        url = result.webViewLink;
+
+        // Cache the root folder id for subsequent uploads
+        if (tokenRow && !tokenRow.driveRootFolderId) {
+          await db
+            .update(googleDriveTokensTable)
+            .set({ driveRootFolderId: result.rootFolderId, updatedAt: new Date() })
+            .where(eq(googleDriveTokensTable.id, tokenRow.id));
+        }
+      } else {
+        // No Drive connection — save buffer to local disk
+        const hash = createHash("md5").update(Date.now() + name).digest("hex").slice(0, 8);
+        const ext = path.extname(name);
+        const filename = `${hash}${ext}`;
+        fs.writeFileSync(path.join(UPLOADS_DIR, filename), req.file.buffer);
+        const baseUrl = process.env.API_BASE_URL ?? "";
+        url = `${baseUrl}/api/uploads/${filename}`;
+      }
     } else {
       // JSON fallback (existing behaviour)
       const body = req.body as any;

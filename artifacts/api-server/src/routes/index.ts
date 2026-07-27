@@ -11,6 +11,7 @@ import dashboardRouter from "./dashboard";
 import notesRouter from "./notes";
 import feedRouter from "./feed";
 import personalNotesRouter from "./personal-notes";
+import driveRouter from "./drive";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(dashboardRouter);
 router.use(notesRouter);
 router.use(feedRouter);
 router.use(personalNotesRouter);
+router.use(driveRouter);
 
 export default router;
