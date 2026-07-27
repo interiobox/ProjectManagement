@@ -36,22 +36,4 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: pnpm
-      
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      
-      - name: Generate API types from OpenAPI spec
-        run: pnpm --filter @workspace/api-spec run codegen
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      
-      - name: Typecheck all packages
-        run: pnpm run typecheck
-      
-      - name: Build main packages
-        run: pnpm --filter "@workspace/api-server" --filter "@workspace/arch-pm" run build
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          PORT: '3000'
-          BASE_PATH: '/'
+          cache: p
