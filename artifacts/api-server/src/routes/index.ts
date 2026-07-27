@@ -9,6 +9,8 @@ import filesRouter from "./files";
 import activityRouter from "./activity";
 import dashboardRouter from "./dashboard";
 import notesRouter from "./notes";
+import feedRouter from "./feed";
+import personalNotesRouter from "./personal-notes";
 
 const router: IRouter = Router();
 
@@ -22,5 +24,7 @@ router.use(filesRouter);
 router.use(activityRouter);
 router.use(dashboardRouter);
 router.use(notesRouter);
+router.use(feedRouter);
+router.use(personalNotesRouter);
 
 export default router;

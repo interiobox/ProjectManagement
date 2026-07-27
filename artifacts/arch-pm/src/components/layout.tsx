@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { LayoutDashboard, FolderKanban, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Rss, Users, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/projects", label: "Projects", icon: FolderKanban },
-    ...(user?.role === "admin" ? [{ href: "/admin/users", label: "Team", icon: Users }] : []),
+    { href: "/feed", label: "My Feed", icon: Rss },
   ];
 
   return (
@@ -59,6 +59,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <span className="text-xs text-sidebar-foreground/60 capitalize truncate">{user?.role}</span>
             </div>
           </div>
+          {user?.role === "admin" && (
+            <Link
+              href="/admin/users"
+              className="flex w-full items-center gap-3 px-3 py-2 rounded-md font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors mb-1"
+            >
+              <Settings className="w-5 h-5" />
+              Manage Team
+            </Link>
+          )}
           <button 
             onClick={logout}
             className="flex w-full items-center gap-3 px-3 py-2 rounded-md font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"

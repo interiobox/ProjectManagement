@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, inArray } from "drizzle-orm";
 import { db, projectsTable, usersTable, tasksTable, filesTable, categoriesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
@@ -53,9 +53,13 @@ router.post("/projects", requireAuth, async (req, res): Promise<void> => {
     userId: req.user!.userId,
   });
 
+  const [creator] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.user!.userId));
   res.status(201).json({
     ...project,
-    createdByName: req.user!.email,
+    createdByName: creator?.name ?? null,
     taskCount: 0,
     fileCount: 0,
   });

@@ -10,6 +10,7 @@ import Projects from '@/pages/projects';
 import ProjectDetail from '@/pages/project-detail';
 import TaskDetail from '@/pages/task-detail';
 import AdminUsers from '@/pages/admin-users';
+import MyFeed from '@/pages/my-feed';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,9 @@ function Router() {
       </Route>
       <Route path="/projects/:id/tasks/:taskId">
         <ProtectedRoute component={TaskDetail} />
+      </Route>
+      <Route path="/feed">
+        <ProtectedRoute component={MyFeed} />
       </Route>
       <Route path="/admin/users">
         <ProtectedRoute component={AdminUsers} adminOnly />

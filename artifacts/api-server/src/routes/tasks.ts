@@ -148,7 +148,11 @@ router.get("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Prom
     )
     .orderBy(filesTable.name);
 
-  res.json({ ...task, createdByName: null, files });
+  const [creator] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, task.createdById));
+  res.json({ ...task, createdByName: creator?.name ?? null, files });
 });
 
 router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Promise<void> => {
@@ -177,7 +181,30 @@ router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Pr
     projectId: task.projectId,
     userId: req.user!.userId,
   });
-  res.json({ ...task, categoryName: null, assignedToName: null, createdByName: null, fileCount: null });
+
+  // Re-fetch related names so the client gets complete data after the update
+  const [categoryRow] = task.categoryId
+    ? await db.select({ name: categoriesTable.name }).from(categoriesTable).where(eq(categoriesTable.id, task.categoryId))
+    : [null];
+  const [assigneeRow] = task.assignedToId
+    ? await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, task.assignedToId))
+    : [null];
+  const [creatorRow] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, task.createdById));
+  const [fileCountRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(filesTable)
+    .where(eq(filesTable.taskId, task.id));
+
+  res.json({
+    ...task,
+    categoryName: categoryRow?.name ?? null,
+    assignedToName: assigneeRow?.name ?? null,
+    createdByName: creatorRow?.name ?? null,
+    fileCount: fileCountRow?.count ?? 0,
+  });
 });
 
 router.delete("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Promise<void> => {

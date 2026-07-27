@@ -5,3 +5,4 @@ export * from "./tasks";
 export * from "./files";
 export * from "./activityLogs";
 export * from "./notes";
+export * from "./personal-notes";

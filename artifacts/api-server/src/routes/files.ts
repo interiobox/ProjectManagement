@@ -138,7 +138,11 @@ router.post(
       userId: req.user!.userId,
     });
 
-    res.status(201).json({ ...file, uploadedByName: null });
+    const [uploader] = await db
+      .select({ name: usersTable.name })
+      .from(usersTable)
+      .where(eq(usersTable.id, req.user!.userId));
+    res.status(201).json({ ...file, uploadedByName: uploader?.name ?? null });
   }
 );
 

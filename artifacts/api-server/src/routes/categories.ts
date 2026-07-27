@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, sql } from "drizzle-orm";
-import { db, categoriesTable } from "@workspace/db";
+import { db, categoriesTable, tasksTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
 import {
@@ -80,7 +80,11 @@ router.patch("/projects/:projectId/categories/:id", requireAuth, async (req, res
     res.status(404).json({ error: "Category not found" });
     return;
   }
-  res.json({ ...category, taskCount: null });
+  const [countRow] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(tasksTable)
+    .where(eq(tasksTable.categoryId, category.id));
+  res.json({ ...category, taskCount: countRow?.count ?? 0 });
 });
 
 router.delete("/projects/:projectId/categories/:id", requireAuth, async (req, res): Promise<void> => {
