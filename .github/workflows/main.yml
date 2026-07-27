@@ -41,7 +41,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       
-      - name: Build type definitions
+      - name: Generate API types from OpenAPI spec
+        run: pnpm --filter @workspace/api-spec run codegen
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+      
+      - name: Typecheck
+        run: pnpm run typecheck
+      
+      - name: Build
         run: pnpm run build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
