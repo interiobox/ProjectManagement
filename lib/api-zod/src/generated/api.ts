@@ -608,6 +608,29 @@ export const GetFileHistoryResponse = zod.array(GetFileHistoryResponseItem)
 
 
 /**
+ * @summary Get the complete upload history for a task
+ */
+export const GetTaskFileHistoryParams = zod.object({
+  "projectId": zod.coerce.number(),
+  "taskId": zod.coerce.number()
+})
+
+export const GetTaskFileHistoryResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "mimeType": zod.string(),
+  "size": zod.number(),
+  "version": zod.number(),
+  "url": zod.string().nullish(),
+  "taskId": zod.number(),
+  "uploadedById": zod.number(),
+  "uploadedByName": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetTaskFileHistoryResponse = zod.array(GetTaskFileHistoryResponseItem)
+
+
+/**
  * @summary Get activity log for a project
  */
 export const GetProjectActivityParams = zod.object({

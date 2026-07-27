@@ -652,6 +652,40 @@ paths:
                 items:
                   $ref: "#/components/schemas/FileVersion"
 
+  /projects/{projectId}/tasks/{taskId}/files/history:
+    get:
+      operationId: getTaskFileHistory
+      tags: [files]
+      summary: Get the complete upload history for a task
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Every uploaded file version for the task, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileVersion"
+        "404":
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /projects/{projectId}/activity:
     get:
       operationId: getProjectActivity

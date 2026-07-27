@@ -6,8 +6,10 @@ import {
   useUpdateTask,
   useDeleteFile,
   useGetFileHistory,
+  useGetTaskFileHistory,
   getGetTaskQueryKey,
   getGetFileHistoryQueryKey,
+  getGetTaskFileHistoryQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -201,14 +203,28 @@ export default function TaskDetail() {
   const [descEdit, setDescEdit] = useState(false);
   const [descValue, setDescValue] = useState("");
   const [historyFileId, setHistoryFileId] = useState<number | null>(null);
+  const [showUploadLog, setShowUploadLog] = useState(false);
   const [assigneeIds, setAssigneeIds] = useState<number[]>([]);
 
   const { data: fileHistory, isLoading: loadingHistory } = useGetFileHistory(
     projectId, taskId, historyFileId || 0,
     { query: { enabled: !!historyFileId, queryKey: getGetFileHistoryQueryKey(projectId, taskId, historyFileId || 0) } }
   );
+  const { data: uploadHistory, isLoading: loadingUploadHistory } = useGetTaskFileHistory(
+    projectId,
+    taskId,
+    {
+      query: {
+        enabled: showUploadLog,
+        queryKey: getGetTaskFileHistoryQueryKey(projectId, taskId),
+      },
+    },
+  );
 
-  const refreshTask = () => queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(projectId, taskId) });
+  const refreshTask = () => {
+    queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(projectId, taskId) });
+    queryClient.invalidateQueries({ queryKey: getGetTaskFileHistoryQueryKey(projectId, taskId) });
+  };
 
   useEffect(() => {
     if (task) setAssigneeIds(task.assigneeIds ?? task.assignees?.map(assignee => assignee.id) ?? []);
@@ -437,6 +453,15 @@ export default function TaskDetail() {
                   <span className="bg-background border border-border px-1.5 rounded text-[10px] font-mono">
                     {task.files?.length || 0}
                   </span>
+                  {task.files && task.files.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowUploadLog(true)}
+                      className="text-xs font-bold text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors"
+                    >
+                      <History className="w-3 h-3" /> Upload log
+                    </button>
+                  )}
                 </div>
 
                 {/* Upload area */}
@@ -525,6 +550,95 @@ export default function TaskDetail() {
           </div>
         </div>
       </div>
+
+      {/* Git-style task-wide upload log */}
+      <Drawer open={showUploadLog} onOpenChange={setShowUploadLog}>
+        <DrawerContent className="border-t-2 border-border max-h-[85vh]">
+          <div className="mx-auto w-full max-w-2xl">
+            <DrawerHeader>
+              <DrawerTitle className="text-xl">Upload History</DrawerTitle>
+              <DrawerDescription className="font-mono text-xs">
+                Every file version uploaded to this task, newest first.
+              </DrawerDescription>
+            </DrawerHeader>
+            <div className="p-4 overflow-y-auto space-y-1">
+              {loadingUploadHistory ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : uploadHistory && uploadHistory.length > 0 ? (
+                <div className="relative">
+                  <div className="absolute left-[11px] top-3 bottom-3 w-px bg-border" aria-hidden="true" />
+                  {[...uploadHistory].map((upload, index) => (
+                    <div key={upload.id} className="relative flex gap-4 py-3">
+                      <div className="relative z-10 mt-1.5 w-6 h-6 rounded-full bg-background border-2 border-primary flex items-center justify-center shrink-0">
+                        <div className="w-2 h-2 rounded-full bg-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1 rounded-lg border border-border bg-secondary/20 p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm truncate" title={upload.name}>
+                              {upload.name}
+                            </p>
+                            <p className="text-[11px] font-mono text-muted-foreground mt-1">
+                              {upload.uploadedByName || "Unknown user"} uploaded version {upload.version}
+                              {" · "}
+                              {format(new Date(upload.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
+                            v{upload.version}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] font-mono text-muted-foreground">
+                          <span>{formatBytes(upload.size)}</span>
+                          <span className="text-border" aria-hidden="true">·</span>
+                          <span className="truncate">upload-{String(upload.id).padStart(4, "0")}</span>
+                          {fileUrl(upload.url) ? (
+                            <a
+                              href={fileUrl(upload.url) ?? undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                              download={upload.name}
+                              className="ml-auto text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                            >
+                              <Download className="w-3 h-3" /> Download
+                            </a>
+                          ) : (
+                            <span className="ml-auto">Download unavailable</span>
+                          )}
+                          {(upload.uploadedById === user?.id || user?.role === "admin") && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFile(upload.id, upload.name)}
+                              disabled={deleteFileMutation.isPending}
+                              className="text-xs font-bold text-muted-foreground flex items-center gap-1 hover:text-destructive disabled:opacity-50"
+                            >
+                              <Trash2 className="w-3 h-3" /> Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-sm">No uploads found.</p>
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-border">
+              <DrawerClose asChild>
+                <button className="w-full bg-secondary text-secondary-foreground font-bold py-3 rounded hover:bg-secondary/80 transition-colors">
+                  Close
+                </button>
+              </DrawerClose>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Version history drawer */}
       <Drawer open={!!historyFileId} onOpenChange={open => !open && setHistoryFileId(null)}>

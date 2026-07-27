@@ -2025,6 +2025,88 @@ export function useGetFileHistory<TData = Awaited<ReturnType<typeof getFileHisto
 
 
 
+export const getGetTaskFileHistoryUrl = (projectId: number,
+    taskId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/tasks/${taskId}/files/history`
+}
+
+/**
+ * @summary Get the complete upload history for a task
+ */
+export const getTaskFileHistory = async (projectId: number,
+    taskId: number, options?: RequestInit): Promise<FileVersion[]> => {
+
+  return customFetch<FileVersion[]>(getGetTaskFileHistoryUrl(projectId,taskId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTaskFileHistoryQueryKey = (projectId: number,
+    taskId: number,) => {
+    return [
+    `/api/projects/${projectId}/tasks/${taskId}/files/history`
+    ] as const;
+    }
+
+
+export const getGetTaskFileHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getTaskFileHistory>>, TError = ErrorType<ErrorResponse>>(projectId: number,
+    taskId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTaskFileHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTaskFileHistoryQueryKey(projectId,taskId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTaskFileHistory>>> = ({ signal }) => getTaskFileHistory(projectId,taskId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined && taskId !== null && taskId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTaskFileHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTaskFileHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getTaskFileHistory>>>
+export type GetTaskFileHistoryQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the complete upload history for a task
+ */
+
+export function useGetTaskFileHistory<TData = Awaited<ReturnType<typeof getTaskFileHistory>>, TError = ErrorType<ErrorResponse>>(
+ projectId: number,
+    taskId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTaskFileHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTaskFileHistoryQueryOptions(projectId,taskId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetProjectActivityUrl = (projectId: number,) => {
 
 

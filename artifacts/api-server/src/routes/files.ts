@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { db, filesTable, usersTable, tasksTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
@@ -220,6 +220,36 @@ router.delete("/projects/:projectId/tasks/:taskId/files/:fileId", requireAuth, a
 });
 
 // ── File version history ──────────────────────────────────────────────────────
+
+router.get("/projects/:projectId/tasks/:taskId/files/history", requireAuth, async (req, res): Promise<void> => {
+  const projectId = parseIntParam(req.params.projectId);
+  const taskId = parseIntParam(req.params.taskId);
+  if (!projectId || !taskId) { res.status(400).json({ error: "Invalid params" }); return; }
+  if (!await taskBelongsToProject(taskId, projectId)) {
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
+
+  const uploads = await db
+    .select({
+      id: filesTable.id,
+      name: filesTable.name,
+      mimeType: filesTable.mimeType,
+      size: filesTable.size,
+      version: filesTable.version,
+      url: filesTable.url,
+      taskId: filesTable.taskId,
+      uploadedById: filesTable.uploadedById,
+      uploadedByName: usersTable.name,
+      createdAt: filesTable.createdAt,
+    })
+    .from(filesTable)
+    .leftJoin(usersTable, eq(filesTable.uploadedById, usersTable.id))
+    .where(eq(filesTable.taskId, taskId))
+    .orderBy(desc(filesTable.createdAt), desc(filesTable.id));
+
+  res.json(uploads);
+});
 
 router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAuth, async (req, res): Promise<void> => {
   const taskId = parseIntParam(req.params.taskId);
