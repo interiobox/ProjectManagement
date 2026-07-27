@@ -162,6 +162,63 @@ router.post(
   }
 );
 
+// ── Delete a file version ──────────────────────────────────────────────────────
+
+router.delete("/projects/:projectId/tasks/:taskId/files/:fileId", requireAuth, async (req, res): Promise<void> => {
+  const projectId = parseIntParam(req.params.projectId);
+  const taskId = parseIntParam(req.params.taskId);
+  const fileId = parseIntParam(req.params.fileId);
+  if (!projectId || !taskId || !fileId) { res.status(400).json({ error: "Invalid params" }); return; }
+  if (!await taskBelongsToProject(taskId, projectId)) {
+    res.status(404).json({ error: "Task not found" });
+    return;
+  }
+
+  const [file] = await db
+    .select({
+      id: filesTable.id,
+      name: filesTable.name,
+      url: filesTable.url,
+      taskId: filesTable.taskId,
+      uploadedById: filesTable.uploadedById,
+    })
+    .from(filesTable)
+    .where(and(eq(filesTable.id, fileId), eq(filesTable.taskId, taskId)));
+
+  if (!file) { res.status(404).json({ error: "File not found" }); return; }
+  if (file.uploadedById !== req.user!.userId && req.user!.role !== "admin") {
+    res.status(403).json({ error: "Only the uploader or an admin can remove this file" });
+    return;
+  }
+
+  await db.delete(filesTable).where(eq(filesTable.id, fileId));
+
+  // Multipart uploads are stored locally. JSON fallback URLs may point to
+  // external storage, so only remove files served by this app.
+  if (file.url) {
+    try {
+      const pathname = new URL(file.url, "http://localhost").pathname;
+      if (pathname.startsWith("/api/uploads/")) {
+        const storedPath = path.join(UPLOADS_DIR, path.basename(pathname));
+        if (fs.existsSync(storedPath)) fs.unlinkSync(storedPath);
+      }
+    } catch {
+      // A malformed or external URL has no local file to remove.
+    }
+  }
+
+  await logActivity({
+    action: "removed file",
+    entityType: "file",
+    entityId: file.id,
+    entityName: file.name,
+    projectId,
+    userId: req.user!.userId,
+  });
+
+  res.sendStatus(204);
+});
+
 // ── File version history ──────────────────────────────────────────────────────
 
 router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAuth, async (req, res): Promise<void> => {
@@ -181,6 +238,7 @@ router.get("/projects/:projectId/tasks/:taskId/files/:fileId/history", requireAu
     .where(eq(filesTable.id, fileId));
 
   if (!baseFile) { res.status(404).json({ error: "File not found" }); return; }
+  if (baseFile.taskId !== taskId) { res.status(404).json({ error: "File not found" }); return; }
 
   const versions = await db
     .select({

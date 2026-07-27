@@ -61,6 +61,9 @@ function Router() {
       <Route path="/admin/users">
         <ProtectedRoute component={AdminUsers} adminOnly />
       </Route>
+      <Route path="/settings">
+        <ProtectedRoute component={AdminUsers} adminOnly />
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

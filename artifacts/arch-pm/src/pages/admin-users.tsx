@@ -104,7 +104,7 @@ export default function AdminUsers() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground flex items-center gap-3">
-              <Shield className="w-8 h-8 text-primary" /> Team Management
+               <Shield className="w-8 h-8 text-primary" /> Settings
             </h1>
             <p className="text-muted-foreground font-mono">Manage access to the workspace.</p>
           </div>
@@ -117,13 +117,13 @@ export default function AdminUsers() {
             }
           }}>
             <DialogTrigger asChild>
-              <button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-4 py-3 rounded-md flex items-center gap-2 transition-colors">
-                <Plus className="w-5 h-5" /> Invite User
+               <button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-4 py-3 rounded-md flex items-center gap-2 transition-colors">
+                 <Plus className="w-5 h-5" /> Add User
               </button>
             </DialogTrigger>
             <DialogContent className="border-2 border-border p-6 rounded-lg sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>{editUserId ? "Edit User" : "Invite New User"}</DialogTitle>
+                 <DialogTitle>{editUserId ? "Edit User" : "Add New User"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
                 <div className="space-y-2">

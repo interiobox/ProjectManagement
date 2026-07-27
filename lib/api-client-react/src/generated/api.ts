@@ -1863,6 +1863,81 @@ export const useUploadFile = <TError = ErrorType<unknown>,
       return useMutation(getUploadFileMutationOptions(options));
     }
 
+export const getDeleteFileUrl = (projectId: number,
+    taskId: number,
+    fileId: number,) => {
+
+
+
+
+  return `/api/projects/${projectId}/tasks/${taskId}/files/${fileId}`
+}
+
+/**
+ * @summary Delete an uploaded file version
+ */
+export const deleteFile = async (projectId: number,
+    taskId: number,
+    fileId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteFileUrl(projectId,taskId,fileId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteFileMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{projectId: number;taskId: number;fileId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{projectId: number;taskId: number;fileId: number}, TContext> => {
+
+const mutationKey = ['deleteFile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFile>>, {projectId: number;taskId: number;fileId: number}> = (props) => {
+          const {projectId,taskId,fileId} = props ?? {};
+
+          return  deleteFile(projectId,taskId,fileId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteFileMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFile>>>
+
+    export type DeleteFileMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Delete an uploaded file version
+ */
+export const useDeleteFile = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFile>>, TError,{projectId: number;taskId: number;fileId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteFile>>,
+        TError,
+        {projectId: number;taskId: number;fileId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteFileMutationOptions(options));
+    }
+
 export const getGetFileHistoryUrl = (projectId: number,
     taskId: number,
     fileId: number,) => {

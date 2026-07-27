@@ -1,0 +1,1 @@
+- [Imported workspace setup](imported-workspace-setup.md) — install the pnpm workspace before diagnosing missing Vite or esbuild workflow commands.

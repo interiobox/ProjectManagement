@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/layout";
 import {
   useGetTask,
   useUpdateTask,
+  useDeleteFile,
   useGetFileHistory,
   getGetTaskQueryKey,
   getGetFileHistoryQueryKey,
@@ -11,11 +12,12 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Paperclip, Clock, Save, File, History, UploadCloud,
-  Download, Loader2, AlertCircle, X, Image, Film, FileText,
+  Download, Loader2, AlertCircle, X, Image, Film, FileText, Trash2,
   FileSpreadsheet, Presentation, Wrench,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from "@/components/ui/drawer";
 import { NotesSection } from "@/components/notes-section";
 import { useTaskNotes, useCreateTaskNote, taskNotesKey } from "@/hooks/use-notes";
@@ -184,6 +186,7 @@ export default function TaskDetail() {
   const projectId = Number(id);
   const taskId = Number(taskIdStr);
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: task, isLoading } = useGetTask(projectId, taskId, {
@@ -191,6 +194,7 @@ export default function TaskDetail() {
   });
 
   const updateMutation = useUpdateTask();
+  const deleteFileMutation = useDeleteFile();
   const { data: notes, isLoading: loadingNotes } = useTaskNotes(projectId, taskId);
   const createNote = useCreateTaskNote(projectId, taskId);
 
@@ -249,6 +253,25 @@ export default function TaskDetail() {
     );
   };
 
+  const handleDeleteFile = (fileId: number, fileName: string) => {
+    if (!confirm(`Remove "${fileName}"? This file version will be deleted.`)) return;
+    deleteFileMutation.mutate(
+      { projectId, taskId, fileId },
+      {
+        onSuccess: () => {
+          refreshTask();
+          queryClient.invalidateQueries({ queryKey: getGetFileHistoryQueryKey(projectId, taskId, fileId) });
+          toast({ title: "File removed" });
+        },
+        onError: (error: any) => toast({
+          title: "Could not remove file",
+          description: error.data?.error || error.message,
+          variant: "destructive",
+        }),
+      },
+    );
+  };
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -265,7 +288,7 @@ export default function TaskDetail() {
     <AppLayout>
       <div className="flex flex-col h-full bg-background">
         {/* Header */}
-        <div className="border-b border-border bg-card sticky top-0 z-10 p-4 md:p-6">
+         <div className="border-b border-border bg-card p-4 md:p-6">
           <div className="max-w-5xl mx-auto w-full">
             <Link href={`/projects/${projectId}`} className="inline-flex items-center text-sm font-bold text-muted-foreground hover:text-primary mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to Project
@@ -475,6 +498,16 @@ export default function TaskDetail() {
                                 <History className="w-3 h-3" /> History
                               </button>
                             )}
+                            {(file.uploadedById === user?.id || user?.role === "admin") && (
+                              <button
+                                onClick={() => handleDeleteFile(file.id, file.name)}
+                                type="button"
+                                disabled={deleteFileMutation.isPending}
+                                className="text-xs font-bold text-muted-foreground flex items-center gap-1 hover:text-destructive transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3 h-3" /> Remove
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -505,7 +538,7 @@ export default function TaskDetail() {
               {loadingHistory ? (
                 <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
               ) : fileHistory && fileHistory.length > 0 ? (
-                fileHistory.sort((a, b) => b.version - a.version).map(v => (
+                  [...fileHistory].sort((a, b) => b.version - a.version).map(v => (
                   <div key={v.id} className="flex items-center gap-3 bg-secondary/30 border border-border rounded-lg p-3">
                     <div className="w-9 h-9 rounded-full bg-accent text-accent-foreground flex items-center justify-center font-bold text-sm shrink-0">
                       v{v.version}
@@ -533,6 +566,17 @@ export default function TaskDetail() {
                         <span className="text-muted-foreground shrink-0" title="This file has no download URL">
                           <Download className="w-4 h-4" />
                         </span>
+                      )}
+                      {(v.uploadedById === user?.id || user?.role === "admin") && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteFile(v.id, v.name)}
+                          disabled={deleteFileMutation.isPending}
+                          className="text-muted-foreground hover:text-destructive disabled:opacity-50 shrink-0"
+                          title={`Remove ${v.name} version ${v.version}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                   </div>
                 ))

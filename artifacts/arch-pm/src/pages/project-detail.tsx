@@ -175,7 +175,7 @@ export default function ProjectDetail() {
   return (
     <AppLayout>
       <div className="flex flex-col h-full bg-secondary/30">
-        <div className="bg-card border-b border-border p-4 md:p-6 sticky top-0 z-10">
+        <div className="bg-card border-b border-border p-4 md:p-6">
           <div className="max-w-7xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center text-sm font-bold text-muted-foreground hover:text-primary mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-1" /> Back to Projects

@@ -572,6 +572,18 @@ export const UploadFileResponse = zod.object({
 
 
 /**
+ * @summary Delete an uploaded file version
+ */
+export const DeleteFileParams = zod.object({
+  "projectId": zod.coerce.number(),
+  "taskId": zod.coerce.number(),
+  "fileId": zod.coerce.number()
+})
+
+export const DeleteFileResponse = zod.void()
+
+
+/**
  * @summary Get version history for a file
  */
 export const GetFileHistoryParams = zod.object({

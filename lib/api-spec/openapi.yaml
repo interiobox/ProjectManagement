@@ -580,6 +580,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/FileRecord"
 
+  /projects/{projectId}/tasks/{taskId}/files/{fileId}:
+    delete:
+      operationId: deleteFile
+      tags: [files]
+      summary: Delete an uploaded file version
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: File deleted
+        "403":
+          description: Only the uploader or an admin can delete the file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: File or task not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /projects/{projectId}/tasks/{taskId}/files/{fileId}/history:
     get:
       operationId: getFileHistory
