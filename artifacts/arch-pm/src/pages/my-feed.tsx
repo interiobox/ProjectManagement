@@ -20,6 +20,8 @@ interface FeedTask {
   categoryName: string | null;
   assignedToId: number | null;
   assignedToName: string | null;
+  assigneeIds?: number[];
+  assignees?: { id: number; name: string; email: string }[];
   createdById: number;
   dueDate: string | null;
   createdAt: string;
@@ -253,9 +255,13 @@ export default function MyFeed() {
                           </div>
 
                           <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto">
-                            {task.assignedToName && (
+                            {task.assignees?.length ? (
+                              <span className="truncate max-w-[180px]">
+                                → {task.assignees.map(assignee => assignee.name).join(", ")}
+                              </span>
+                            ) : task.assignedToName ? (
                               <span className="truncate max-w-[120px]">→ {task.assignedToName}</span>
-                            )}
+                            ) : null}
                             {task.dueDate && (
                               <span className={`flex items-center gap-1 ml-auto ${
                                 new Date(task.dueDate) < new Date() && task.status !== "done"

@@ -30,6 +30,7 @@ export * from './projectStatus';
 export * from './projectUpdate';
 export * from './projectUpdateStatus';
 export * from './task';
+export * from './taskAssignee';
 export * from './taskDetail';
 export * from './taskDetailPriority';
 export * from './taskDetailStatus';

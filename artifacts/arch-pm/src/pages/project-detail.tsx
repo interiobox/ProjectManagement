@@ -22,6 +22,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AssigneePicker } from "@/components/assignee-picker";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -29,6 +30,7 @@ const taskSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
   status: z.enum(["todo", "in_progress", "review", "done"]).default("todo"),
   categoryId: z.coerce.number().optional(),
+  assigneeIds: z.array(z.number()).default([]),
 });
 
 type TaskForm = z.infer<typeof taskSchema>;
@@ -65,7 +67,7 @@ export default function ProjectDetail() {
 
   const taskForm = useForm<TaskForm>({
     resolver: zodResolver(taskSchema),
-    defaultValues: { priority: "medium", status: "todo" }
+    defaultValues: { priority: "medium", status: "todo", assigneeIds: [] }
   });
 
   const categoryForm = useForm<z.infer<typeof categorySchema>>({
@@ -75,7 +77,7 @@ export default function ProjectDetail() {
 
   const onTaskSubmit = (data: TaskForm) => {
     createTaskMutation.mutate(
-      { projectId, data },
+      { projectId, data: { ...data, assigneeIds: data.assigneeIds?.length ? data.assigneeIds : undefined } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(projectId) });
@@ -257,6 +259,11 @@ export default function ProjectDetail() {
                           </select>
                         </div>
                       </div>
+                      <AssigneePicker
+                        value={taskForm.watch("assigneeIds") ?? []}
+                        onChange={assigneeIds => taskForm.setValue("assigneeIds", assigneeIds)}
+                        disabled={createTaskMutation.isPending}
+                      />
                       <button type="submit" disabled={createTaskMutation.isPending} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold p-3 rounded mt-4">
                         {createTaskMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : "Create Task"}
                       </button>
@@ -321,7 +328,7 @@ export default function ProjectDetail() {
                             </DropdownMenu>
                           </div>
                           
-                          <div className="flex flex-wrap gap-2 mb-4">
+                           <div className="flex flex-wrap gap-2 mb-4">
                             <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border ${statusColors[task.status] || "bg-secondary text-secondary-foreground"}`}>
                               {task.status.replace('_', ' ')}
                             </span>
@@ -329,6 +336,19 @@ export default function ProjectDetail() {
                               {task.priority}
                             </span>
                           </div>
+
+                           {task.assignees && task.assignees.length > 0 && (
+                             <div className="flex items-start gap-2 mb-4 text-xs text-muted-foreground">
+                               <span className="font-bold shrink-0">Assigned:</span>
+                               <span className="flex flex-wrap gap-1">
+                                 {task.assignees.map(assignee => (
+                                   <span key={assignee.id} className="rounded bg-secondary px-1.5 py-0.5 font-medium text-foreground">
+                                     {assignee.name}
+                                   </span>
+                                 ))}
+                               </span>
+                             </div>
+                           )}
 
                           <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50 text-xs font-medium text-muted-foreground">
                             <div className="flex items-center gap-3">

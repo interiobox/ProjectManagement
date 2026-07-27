@@ -19,6 +19,7 @@ export interface TaskUpdate {
   categoryId?: number | null;
   /** @nullable */
   assignedToId?: number | null;
+  assigneeIds?: number[];
   /** @nullable */
   dueDate?: string | null;
 }

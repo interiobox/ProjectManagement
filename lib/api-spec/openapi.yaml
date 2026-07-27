@@ -900,6 +900,14 @@ components:
           type: ["integer", "null"]
         assignedToName:
           type: ["string", "null"]
+        assigneeIds:
+          type: array
+          items:
+            type: integer
+        assignees:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskAssignee"
         createdById:
           type: integer
         createdByName:
@@ -915,6 +923,17 @@ components:
           format: date-time
         fileCount:
           type: ["integer", "null"]
+
+    TaskAssignee:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
 
     TaskDetail:
       type: object
@@ -942,6 +961,14 @@ components:
           type: ["integer", "null"]
         assignedToName:
           type: ["string", "null"]
+        assigneeIds:
+          type: array
+          items:
+            type: integer
+        assignees:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskAssignee"
         createdById:
           type: integer
         createdByName:
@@ -979,6 +1006,10 @@ components:
           type: integer
         assignedToId:
           type: integer
+        assigneeIds:
+          type: array
+          items:
+            type: integer
         dueDate:
           type: string
 
@@ -1000,6 +1031,10 @@ components:
           type: ["integer", "null"]
         assignedToId:
           type: ["integer", "null"]
+        assigneeIds:
+          type: array
+          items:
+            type: integer
         dueDate:
           type: ["string", "null"]
 

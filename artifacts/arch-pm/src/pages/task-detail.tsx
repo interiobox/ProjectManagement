@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { AppLayout } from "@/components/layout";
 import {
@@ -20,6 +20,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { NotesSection } from "@/components/notes-section";
 import { useTaskNotes, useCreateTaskNote, taskNotesKey } from "@/hooks/use-notes";
 import { cn } from "@/lib/utils";
+import { AssigneePicker } from "@/components/assignee-picker";
 
 // ── File type helpers ─────────────────────────────────────────────────────────
 
@@ -52,6 +53,13 @@ function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function fileUrl(url: string | null | undefined) {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  return `${base}${url.startsWith("/") ? url : `/${url}`}`;
 }
 
 // ── Upload area component ─────────────────────────────────────────────────────
@@ -189,6 +197,7 @@ export default function TaskDetail() {
   const [descEdit, setDescEdit] = useState(false);
   const [descValue, setDescValue] = useState("");
   const [historyFileId, setHistoryFileId] = useState<number | null>(null);
+  const [assigneeIds, setAssigneeIds] = useState<number[]>([]);
 
   const { data: fileHistory, isLoading: loadingHistory } = useGetFileHistory(
     projectId, taskId, historyFileId || 0,
@@ -196,6 +205,28 @@ export default function TaskDetail() {
   );
 
   const refreshTask = () => queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(projectId, taskId) });
+
+  useEffect(() => {
+    if (task) setAssigneeIds(task.assigneeIds ?? task.assignees?.map(assignee => assignee.id) ?? []);
+  }, [task]);
+
+  const saveAssignees = (nextAssigneeIds: number[]) => {
+    const previousAssigneeIds = task?.assigneeIds ?? task?.assignees?.map(assignee => assignee.id) ?? [];
+    setAssigneeIds(nextAssigneeIds);
+    updateMutation.mutate(
+      { projectId, id: taskId, data: { assigneeIds: nextAssigneeIds } },
+      {
+        onSuccess: () => {
+          refreshTask();
+          toast({ title: nextAssigneeIds.length ? "Assignees updated" : "Task unassigned" });
+        },
+        onError: (error: any) => {
+          setAssigneeIds(previousAssigneeIds);
+          toast({ title: "Could not update assignees", description: error.data?.error || error.message, variant: "destructive" });
+        },
+      },
+    );
+  };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     updateMutation.mutate(
@@ -297,6 +328,14 @@ export default function TaskDetail() {
                   </select>
                 </div>
               </div>
+            </div>
+            <div className="mt-4 max-w-md">
+              <AssigneePicker
+                value={assigneeIds}
+                onChange={saveAssignees}
+                disabled={updateMutation.isPending}
+                label="Assigned users"
+              />
             </div>
           </div>
         </div>
@@ -411,18 +450,26 @@ export default function TaskDetail() {
                               {format(new Date(file.createdAt), "MMM d, yyyy 'at' h:mm a")}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <a
-                              href={file.url || "#"}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
-                            >
-                              <Download className="w-3 h-3" /> Download
-                            </a>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                            {fileUrl(file.url) ? (
+                              <a
+                                href={fileUrl(file.url) ?? undefined}
+                                target="_blank"
+                                rel="noreferrer"
+                                download={file.name}
+                                className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                              >
+                                <Download className="w-3 h-3" /> Download
+                              </a>
+                            ) : (
+                              <span className="text-xs font-bold text-muted-foreground flex items-center gap-1" title="This file has no download URL">
+                                <Download className="w-3 h-3" /> Download unavailable
+                              </span>
+                            )}
                             {file.version > 1 && (
                               <button
                                 onClick={() => setHistoryFileId(file.id)}
+                                type="button"
                                 className="text-xs font-bold text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors"
                               >
                                 <History className="w-3 h-3" /> History
@@ -471,9 +518,22 @@ export default function TaskDetail() {
                       </p>
                       <p className="text-[11px] font-mono text-muted-foreground">{formatBytes(v.size)}</p>
                     </div>
-                    <a href={v.url || "#"} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80 shrink-0" title="Download">
-                      <Download className="w-4 h-4" />
-                    </a>
+                      {fileUrl(v.url) ? (
+                        <a
+                          href={fileUrl(v.url) ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={v.name}
+                          className="text-primary hover:text-primary/80 shrink-0"
+                          title={`Download ${v.name}`}
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground shrink-0" title="This file has no download URL">
+                          <Download className="w-4 h-4" />
+                        </span>
+                      )}
                   </div>
                 ))
               ) : (

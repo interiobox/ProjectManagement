@@ -349,6 +349,12 @@ export const ListTasksResponseItem = zod.object({
   "categoryName": zod.string().nullish(),
   "assignedToId": zod.number().nullish(),
   "assignedToName": zod.string().nullish(),
+  "assigneeIds": zod.array(zod.number()).optional(),
+  "assignees": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+})).optional(),
   "createdById": zod.number(),
   "createdByName": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),
@@ -376,6 +382,7 @@ export const CreateTaskBody = zod.object({
   "priority": zod.enum(['low', 'medium', 'high', 'urgent']).optional(),
   "categoryId": zod.number().optional(),
   "assignedToId": zod.number().optional(),
+  "assigneeIds": zod.array(zod.number()).optional(),
   "dueDate": zod.string().optional()
 })
 
@@ -390,6 +397,12 @@ export const CreateTaskResponse = zod.object({
   "categoryName": zod.string().nullish(),
   "assignedToId": zod.number().nullish(),
   "assignedToName": zod.string().nullish(),
+  "assigneeIds": zod.array(zod.number()).optional(),
+  "assignees": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+})).optional(),
   "createdById": zod.number(),
   "createdByName": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),
@@ -418,6 +431,12 @@ export const GetTaskResponse = zod.object({
   "categoryName": zod.string().nullish(),
   "assignedToId": zod.number().nullish(),
   "assignedToName": zod.string().nullish(),
+  "assigneeIds": zod.array(zod.number()).optional(),
+  "assignees": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+})).optional(),
   "createdById": zod.number(),
   "createdByName": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),
@@ -456,6 +475,7 @@ export const UpdateTaskBody = zod.object({
   "priority": zod.enum(['low', 'medium', 'high', 'urgent']).optional(),
   "categoryId": zod.number().nullish(),
   "assignedToId": zod.number().nullish(),
+  "assigneeIds": zod.array(zod.number()).optional(),
   "dueDate": zod.string().nullish()
 })
 
@@ -470,6 +490,12 @@ export const UpdateTaskResponse = zod.object({
   "categoryName": zod.string().nullish(),
   "assignedToId": zod.number().nullish(),
   "assignedToName": zod.string().nullish(),
+  "assigneeIds": zod.array(zod.number()).optional(),
+  "assignees": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string()
+})).optional(),
   "createdById": zod.number(),
   "createdByName": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),

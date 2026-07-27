@@ -2,6 +2,7 @@ export * from "./users";
 export * from "./projects";
 export * from "./categories";
 export * from "./tasks";
+export * from "./taskAssignees";
 export * from "./files";
 export * from "./activityLogs";
 export * from "./notes";

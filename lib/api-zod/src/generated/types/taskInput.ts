@@ -16,5 +16,6 @@ export interface TaskInput {
   priority?: TaskInputPriority;
   categoryId?: number;
   assignedToId?: number;
+  assigneeIds?: number[];
   dueDate?: string;
 }

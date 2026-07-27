@@ -5,6 +5,7 @@
  * Architecture Project Management API
  * OpenAPI spec version: 0.1.0
  */
+import type { TaskAssignee } from './taskAssignee';
 import type { TaskPriority } from './taskPriority';
 import type { TaskStatus } from './taskStatus';
 
@@ -24,6 +25,8 @@ export interface Task {
   assignedToId?: number | null;
   /** @nullable */
   assignedToName?: string | null;
+  assigneeIds?: number[];
+  assignees?: TaskAssignee[];
   createdById: number;
   /** @nullable */
   createdByName?: string | null;

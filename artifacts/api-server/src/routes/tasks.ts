@@ -12,6 +12,12 @@ import {
   ListTasksParams,
   GetTaskParams,
 } from "@workspace/api-zod";
+import {
+  getTaskAssignees,
+  replaceTaskAssignees,
+  validateAssigneeIds,
+  withLegacyAssignee,
+} from "../lib/task-assignees";
 
 const router: IRouter = Router();
 
@@ -54,7 +60,20 @@ router.get("/projects/:projectId/tasks", requireAuth, async (req, res): Promise<
     : [];
   const creatorMap = Object.fromEntries(creators.map(c => [c.id, c.name]));
 
-  res.json(tasks.map(t => ({ ...t, createdByName: creatorMap[t.createdById] ?? null })));
+  const assigneeMap = await getTaskAssignees(tasks.map(task => task.id));
+  res.json(tasks.map(t => {
+    const assignees = withLegacyAssignee(
+      assigneeMap.get(t.id) ?? [],
+      t.assignedToId,
+      t.assignedToName,
+    );
+    return {
+      ...t,
+      createdByName: creatorMap[t.createdById] ?? null,
+      assigneeIds: assignees.map(assignee => assignee.id),
+      assignees,
+    };
+  }));
 });
 
 router.post("/projects/:projectId/tasks", requireAuth, async (req, res): Promise<void> => {
@@ -68,11 +87,21 @@ router.post("/projects/:projectId/tasks", requireAuth, async (req, res): Promise
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const { assigneeIds: rawAssigneeIds, ...taskData } = parsed.data;
+  let assigneeIds: number[];
+  try {
+    assigneeIds = await validateAssigneeIds(rawAssigneeIds ?? (taskData.assignedToId ? [taskData.assignedToId] : []));
+  } catch (error) {
+    res.status(400).json({ error: error instanceof Error ? error.message : "Invalid assignees" });
+    return;
+  }
   const [task] = await db.insert(tasksTable).values({
-    ...parsed.data,
+    ...taskData,
+    assignedToId: assigneeIds[0] ?? null,
     projectId: params.data.projectId,
     createdById: req.user!.userId,
   }).returning();
+  await replaceTaskAssignees(task.id, assigneeIds);
 
   await logActivity({
     action: "created task",
@@ -83,12 +112,15 @@ router.post("/projects/:projectId/tasks", requireAuth, async (req, res): Promise
     userId: req.user!.userId,
   });
 
+  const assignees = (await getTaskAssignees([task.id])).get(task.id) ?? [];
   res.status(201).json({
     ...task,
     categoryName: null,
     assignedToName: null,
     createdByName: null,
     fileCount: 0,
+    assigneeIds: assignees.map(assignee => assignee.id),
+    assignees,
   });
 });
 
@@ -152,7 +184,18 @@ router.get("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Prom
     .select({ name: usersTable.name })
     .from(usersTable)
     .where(eq(usersTable.id, task.createdById));
-  res.json({ ...task, createdByName: creator?.name ?? null, files });
+  const assignees = withLegacyAssignee(
+    (await getTaskAssignees([task.id])).get(task.id) ?? [],
+    task.assignedToId,
+    task.assignedToName,
+  );
+  res.json({
+    ...task,
+    createdByName: creator?.name ?? null,
+    assigneeIds: assignees.map(assignee => assignee.id),
+    assignees,
+    files,
+  });
 });
 
 router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Promise<void> => {
@@ -166,12 +209,29 @@ router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Pr
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [task] = await db.update(tasksTable).set(parsed.data).where(
+  const { assigneeIds: rawAssigneeIds, ...taskUpdates } = parsed.data;
+  let assigneeIds: number[] | undefined = rawAssigneeIds;
+  if (assigneeIds === undefined && "assignedToId" in parsed.data) {
+    assigneeIds = parsed.data.assignedToId ? [parsed.data.assignedToId] : [];
+  }
+  if (assigneeIds !== undefined) {
+    try {
+      assigneeIds = await validateAssigneeIds(assigneeIds);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid assignees" });
+      return;
+    }
+    taskUpdates.assignedToId = assigneeIds[0] ?? null;
+  }
+  const [task] = await db.update(tasksTable).set(taskUpdates).where(
     and(eq(tasksTable.id, params.data.id), eq(tasksTable.projectId, params.data.projectId))
   ).returning();
   if (!task) {
     res.status(404).json({ error: "Task not found" });
     return;
+  }
+  if (assigneeIds !== undefined) {
+    await replaceTaskAssignees(task.id, assigneeIds);
   }
   await logActivity({
     action: "updated task",
@@ -186,9 +246,11 @@ router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Pr
   const [categoryRow] = task.categoryId
     ? await db.select({ name: categoriesTable.name }).from(categoriesTable).where(eq(categoriesTable.id, task.categoryId))
     : [null];
-  const [assigneeRow] = task.assignedToId
-    ? await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, task.assignedToId))
-    : [null];
+  const assignees = withLegacyAssignee(
+    (await getTaskAssignees([task.id])).get(task.id) ?? [],
+    task.assignedToId,
+    null,
+  );
   const [creatorRow] = await db
     .select({ name: usersTable.name })
     .from(usersTable)
@@ -201,9 +263,11 @@ router.patch("/projects/:projectId/tasks/:id", requireAuth, async (req, res): Pr
   res.json({
     ...task,
     categoryName: categoryRow?.name ?? null,
-    assignedToName: assigneeRow?.name ?? null,
+    assignedToName: assignees[0]?.name ?? null,
     createdByName: creatorRow?.name ?? null,
     fileCount: fileCountRow?.count ?? 0,
+    assigneeIds: assignees.map(assignee => assignee.id),
+    assignees,
   });
 });
 

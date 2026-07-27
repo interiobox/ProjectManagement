@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { FileRecord } from './fileRecord';
+import type { TaskAssignee } from './taskAssignee';
 import type { TaskDetailPriority } from './taskDetailPriority';
 import type { TaskDetailStatus } from './taskDetailStatus';
 
@@ -25,6 +26,8 @@ export interface TaskDetail {
   assignedToId?: number | null;
   /** @nullable */
   assignedToName?: string | null;
+  assigneeIds?: number[];
+  assignees?: TaskAssignee[];
   createdById: number;
   /** @nullable */
   createdByName?: string | null;

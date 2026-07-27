@@ -203,6 +203,12 @@ export const TaskPriority = {
   urgent: 'urgent',
 } as const;
 
+export interface TaskAssignee {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -219,6 +225,8 @@ export interface Task {
   assignedToId?: number | null;
   /** @nullable */
   assignedToName?: string | null;
+  assigneeIds?: number[];
+  assignees?: TaskAssignee[];
   createdById: number;
   /** @nullable */
   createdByName?: string | null;
@@ -281,6 +289,8 @@ export interface TaskDetail {
   assignedToId?: number | null;
   /** @nullable */
   assignedToName?: string | null;
+  assigneeIds?: number[];
+  assignees?: TaskAssignee[];
   createdById: number;
   /** @nullable */
   createdByName?: string | null;
@@ -319,6 +329,7 @@ export interface TaskInput {
   priority?: TaskInputPriority;
   categoryId?: number;
   assignedToId?: number;
+  assigneeIds?: number[];
   dueDate?: string;
 }
 
@@ -353,6 +364,7 @@ export interface TaskUpdate {
   categoryId?: number | null;
   /** @nullable */
   assignedToId?: number | null;
+  assigneeIds?: number[];
   /** @nullable */
   dueDate?: string | null;
 }
