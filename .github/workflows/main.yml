@@ -54,22 +54,4 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           PORT: '3000'
-          BASE_PATH: '/'        with:
-          node-version: '20'
-          cache: pnpm
-      
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      
-      - name: Generate API types from OpenAPI spec
-        run: pnpm --filter @workspace/api-spec run codegen
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      
-      - name: Typecheck
-        run: pnpm run typecheck
-      
-      - name: Build
-        run: pnpm run build
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          BASE_PATH: '/'
