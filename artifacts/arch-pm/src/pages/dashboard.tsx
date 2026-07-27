@@ -1,10 +1,12 @@
 import { useGetDashboardSummary, useGetRecentActivity } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout";
-import { FolderKanban, CheckSquare, Files, Users, Activity, Loader2, ArrowRight } from "lucide-react";
+import { FolderKanban, CheckSquare, Files, Users, Activity, Loader2, ArrowRight, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/lib/auth";
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
   const { data: recentActivity, isLoading: loadingActivity } = useGetRecentActivity();
 
@@ -21,9 +23,20 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="p-6 md:p-10 max-w-7xl mx-auto w-full space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground font-mono">System overview and recent activity.</p>
+         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+           <div>
+             <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Dashboard</h1>
+             <p className="text-muted-foreground font-mono">System overview and recent activity.</p>
+           </div>
+           {user?.role === "admin" && (
+             <Link
+               href="/settings?add=user"
+               className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-4 py-3 rounded-md flex items-center justify-center gap-2 transition-colors shrink-0"
+               data-testid="link-add-user"
+             >
+               <Plus className="w-5 h-5" /> Add User
+             </Link>
+           )}
         </div>
 
         {/* Stats Grid */}

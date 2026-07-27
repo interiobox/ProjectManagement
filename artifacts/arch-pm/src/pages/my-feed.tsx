@@ -163,7 +163,7 @@ export default function MyFeed() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col">
         {/* Header */}
         <div className="border-b border-border bg-card px-4 md:px-8 py-5">
           <div className="max-w-5xl mx-auto">
@@ -176,7 +176,7 @@ export default function MyFeed() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div>
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-8">
 
             {/* Filter tabs */}

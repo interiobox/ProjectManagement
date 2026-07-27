@@ -81,8 +81,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col pb-[72px] md:pb-0 h-[100dvh] overflow-y-auto">
-        <header className="sticky top-0 z-20 flex min-h-16 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
+      <main className="flex-1 flex flex-col min-h-[100dvh] pb-[72px] md:pb-0">
+        <header className="flex min-h-16 items-center border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
           <GlobalSearch />
         </header>
         {children}

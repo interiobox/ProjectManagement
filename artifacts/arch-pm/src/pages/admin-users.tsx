@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { AppLayout } from "@/components/layout";
 import { useListUsers, useCreateUser, useUpdateUser, useDeleteUser, getListUsersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ const userSchema = z.object({
 });
 
 export default function AdminUsers() {
+  const [location, setLocation] = useLocation();
   const { data: users, isLoading } = useListUsers();
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -34,6 +36,13 @@ export default function AdminUsers() {
     resolver: zodResolver(userSchema),
     defaultValues: { role: "member", password: "" }
   });
+
+  useEffect(() => {
+    if (location.includes("?add=user")) {
+      setIsAddOpen(true);
+      setLocation("/settings", { replace: true });
+    }
+  }, [location, setLocation]);
 
   const onSubmit = (data: z.infer<typeof userSchema>) => {
     if (editUserId) {
