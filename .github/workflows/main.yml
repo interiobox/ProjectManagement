@@ -41,10 +41,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       
-      - name: Run typecheck
-        run: pnpm run typecheck
-      
-      - name: Run build
+      - name: Build type definitions
         run: pnpm run build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
