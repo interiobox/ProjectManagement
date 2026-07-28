@@ -1,0 +1,39 @@
+[build]
+  # Install deps, then build the React frontend.
+  # The Netlify function (netlify/functions/api.ts) is bundled automatically
+  # by Netlify's esbuild bundler — no separate build step needed.
+  command = "pnpm install && pnpm --filter @workspace/arch-pm run build"
+  publish = "artifacts/arch-pm/dist/public"
+
+[build.environment]
+  # BASE_PATH drives Vite's `base` option — must be "/" for Netlify.
+  BASE_PATH = "/"
+  # Use Node 22 (LTS). The project targets Node 24 locally; 22 is the
+  # highest LTS Netlify currently supports and is fully compatible.
+  NODE_VERSION = "22"
+  # Ensures pino uses plain JSON stdout (no pino-pretty transport).
+  NODE_ENV = "production"
+
+[functions]
+  directory = "netlify/functions"
+  # Let Netlify bundle the TypeScript function with esbuild.
+  node_bundler = "esbuild"
+  # Keep these packages as-is from node_modules rather than bundling them:
+  #   googleapis  — uses internal file-path traversal (proto files), breaks when bundled
+  #   pg-native   — optional native C addon for pg; pg falls back to pure JS without it
+  #   pino / pino-http / pino-pretty — use worker threads for transports; safer external
+  external_node_modules = ["googleapis", "pg-native", "pino", "pino-http", "pino-pretty"]
+
+# Forward all /api/* requests to the Express serverless function.
+# event.path inside the function is the original request path (/api/...),
+# so Express's `app.use("/api", router)` matches without any changes.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+# SPA fallback — all other routes serve index.html so the React router handles them.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
