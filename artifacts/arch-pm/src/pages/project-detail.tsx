@@ -184,7 +184,7 @@ export default function ProjectDetail() {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                  <span className="px-2.5 py-1 rounded bg-secondary font-mono text-xs font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-1 rounded bg-secondary text-xs font-medium capitalize">
                     {project.status.replace('_', ' ')}
                   </span>
                 </div>
@@ -199,20 +199,20 @@ export default function ProjectDetail() {
                       <Plus className="w-4 h-4" /> Category
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="border-2 border-border p-6 rounded-lg sm:max-w-[425px]">
+                  <DialogContent className="border border-border p-6 rounded-lg sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>New Category</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={categoryForm.handleSubmit(onCategorySubmit)} className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Category Name</label>
-                        <input {...categoryForm.register("name")} className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary" placeholder="e.g. Architectural Docs" />
+                        <label className="text-sm font-medium text-muted-foreground">Category Name</label>
+                        <input {...categoryForm.register("name")} className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary" placeholder="e.g. Architectural Docs" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Color (Hex)</label>
+                        <label className="text-sm font-medium text-muted-foreground">Color (Hex)</label>
                         <div className="flex gap-2">
-                          <input type="color" {...categoryForm.register("color")} className="w-12 h-12 p-1 bg-background border-2 border-border rounded cursor-pointer" />
-                          <input type="text" {...categoryForm.register("color")} className="flex-1 bg-background border-2 border-border p-3 rounded outline-none focus:border-primary font-mono uppercase" />
+                          <input type="color" {...categoryForm.register("color")} className="w-12 h-12 p-1 bg-background border border-border rounded cursor-pointer" />
+                          <input type="text" {...categoryForm.register("color")} className="flex-1 bg-background border border-border p-3 rounded outline-none focus:border-primary font-mono uppercase" />
                         </div>
                       </div>
                       <button type="submit" disabled={createCategoryMutation.isPending} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold p-3 rounded mt-2">
@@ -228,30 +228,30 @@ export default function ProjectDetail() {
                       <Plus className="w-4 h-4" /> Task
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="border-2 border-border p-6 rounded-lg sm:max-w-[500px]">
+                  <DialogContent className="border border-border p-6 rounded-lg sm:max-w-[500px]">
                     <DialogHeader>
                       <DialogTitle>New Task</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={taskForm.handleSubmit(onTaskSubmit)} className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Title</label>
-                        <input {...taskForm.register("title")} className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary" placeholder="Task title..." />
+                        <label className="text-sm font-medium text-muted-foreground">Title</label>
+                        <input {...taskForm.register("title")} className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary" placeholder="Task title..." />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Description</label>
-                        <textarea {...taskForm.register("description")} className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary min-h-[80px]" placeholder="Details..." />
+                        <label className="text-sm font-medium text-muted-foreground">Description</label>
+                        <textarea {...taskForm.register("description")} className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary min-h-[80px]" placeholder="Details..." />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Category</label>
-                          <select {...taskForm.register("categoryId")} className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary">
+                          <label className="text-sm font-medium text-muted-foreground">Category</label>
+                          <select {...taskForm.register("categoryId")} className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary">
                             <option value="">None</option>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
-                          <select {...taskForm.register("priority")} className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary">
+                          <label className="text-sm font-medium text-muted-foreground">Priority</label>
+                          <select {...taskForm.register("priority")} className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary">
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
@@ -285,12 +285,12 @@ export default function ProjectDetail() {
                   <div className="flex items-center gap-2 px-1">
                     {catObj?.color && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: catObj.color }} />}
                     <h2 className="text-lg font-bold tracking-tight">{catName}</h2>
-                    <span className="text-xs font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded ml-2">{catTasks?.length || 0}</span>
+                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded ml-2">{catTasks?.length || 0}</span>
                   </div>
                   
                   {catTasks?.length === 0 ? (
-                    <div className="bg-card border-2 border-dashed border-border rounded-lg p-6 text-center text-muted-foreground">
-                      <p className="font-mono text-sm">No tasks in this category.</p>
+                    <div className="bg-card border border-dashed border-border rounded-lg p-6 text-center text-muted-foreground">
+                      <p className="text-sm">No tasks in this category.</p>
                       <button 
                         onClick={() => {
                           taskForm.setValue("categoryId", catObj?.id || undefined);
@@ -304,7 +304,7 @@ export default function ProjectDetail() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {catTasks?.map(task => (
-                        <div key={task.id} className="bg-card border-2 border-border rounded-lg p-4 flex flex-col group hover-elevate transition-all">
+                        <div key={task.id} className="bg-card border border-border rounded-lg p-4 flex flex-col group hover-elevate transition-all">
                           <div className="flex justify-between items-start mb-2 gap-2">
                             <Link href={`/projects/${projectId}/tasks/${task.id}`} className="font-bold text-base leading-tight hover:text-primary transition-colors flex-1 line-clamp-2">
                               {task.title}
@@ -315,7 +315,7 @@ export default function ProjectDetail() {
                                   <MoreVertical className="w-4 h-4" />
                                 </button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40 font-medium border-2 border-border rounded-lg shadow-xl">
+                              <DropdownMenuContent align="end" className="w-40 font-medium border border-border rounded-lg shadow-xl">
                                 <DropdownMenuItem className="cursor-pointer font-bold" onClick={() => handleUpdateTaskStatus(task.id, "todo")}>Set Todo</DropdownMenuItem>
                                 <DropdownMenuItem className="cursor-pointer font-bold" onClick={() => handleUpdateTaskStatus(task.id, "in_progress")}>Set In Progress</DropdownMenuItem>
                                 <DropdownMenuItem className="cursor-pointer font-bold" onClick={() => handleUpdateTaskStatus(task.id, "review")}>Set Review</DropdownMenuItem>

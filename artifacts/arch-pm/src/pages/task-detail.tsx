@@ -139,7 +139,7 @@ function UploadArea({ projectId, taskId, onSuccess }: UploadAreaProps) {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "relative border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
+          "relative border border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
           dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-secondary/30",
           uploading && "pointer-events-none opacity-60"
         )}
@@ -158,7 +158,7 @@ function UploadArea({ projectId, taskId, onSuccess }: UploadAreaProps) {
         <p className="text-sm font-bold text-foreground">
           {dragging ? "Drop to upload" : "Click or drag files here"}
         </p>
-        <p className="text-xs text-muted-foreground mt-1 font-mono">
+        <p className="text-xs text-muted-foreground mt-1">
           Photos · Videos · PDFs · DWG · PPTX · XLSX · Word · ZIP — up to 200 MB each
         </p>
       </div>
@@ -314,7 +314,7 @@ export default function TaskDetail() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   {task.categoryName && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-secondary text-secondary-foreground px-2 py-0.5 rounded border border-border">
+                    <span className="text-[10px] font-medium bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
                       {task.categoryName}
                     </span>
                   )}
@@ -339,7 +339,7 @@ export default function TaskDetail() {
 
               <div className="flex gap-3 bg-secondary/30 p-2 rounded-lg border border-border/50 shrink-0">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1">Status</label>
+                  <label className="text-[10px] font-medium text-muted-foreground px-1">Status</label>
                   <select
                     value={task.status}
                     onChange={handleStatusChange}
@@ -353,7 +353,7 @@ export default function TaskDetail() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1">Priority</label>
+                  <label className="text-[10px] font-medium text-muted-foreground px-1">Priority</label>
                   <select
                     value={task.priority || "medium"}
                     onChange={handlePriorityChange}
@@ -386,9 +386,9 @@ export default function TaskDetail() {
             {/* Left column */}
             <div className="lg:col-span-2 space-y-6">
               {/* Description */}
-              <div className="bg-card border-2 border-border rounded-lg overflow-hidden">
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
                 <div className="bg-secondary/50 border-b border-border p-3 px-5 flex items-center justify-between">
-                  <h3 className="font-bold text-sm uppercase tracking-wider">Description</h3>
+                  <h3 className="font-semibold text-sm">Description</h3>
                   {!descEdit && (
                     <button
                       onClick={() => { setDescValue(task.description || ""); setDescEdit(true); }}
@@ -404,7 +404,7 @@ export default function TaskDetail() {
                       <textarea
                         value={descValue}
                         onChange={e => setDescValue(e.target.value)}
-                        className="w-full min-h-[150px] p-3 bg-background border-2 border-border rounded focus:border-primary outline-none text-sm leading-relaxed font-medium resize-none"
+                        className="w-full min-h-[150px] p-3 bg-background border border-border rounded focus:border-primary outline-none text-sm leading-relaxed font-medium resize-none"
                         placeholder="Add task details..."
                         autoFocus
                       />
@@ -446,10 +446,10 @@ export default function TaskDetail() {
 
             {/* Right column — Files */}
             <div className="space-y-6">
-              <div className="bg-card border-2 border-border rounded-lg flex flex-col">
+              <div className="bg-card border border-border rounded-lg flex flex-col">
                 <div className="bg-secondary/50 border-b border-border p-3 px-4 flex items-center gap-2">
                   <Paperclip className="w-4 h-4 text-muted-foreground" />
-                  <h3 className="font-bold text-sm uppercase tracking-wider flex-1">Files</h3>
+                  <h3 className="font-semibold text-sm flex-1">Files</h3>
                   <span className="bg-background border border-border px-1.5 rounded text-[10px] font-mono">
                     {task.files?.length || 0}
                   </span>
@@ -542,7 +542,7 @@ export default function TaskDetail() {
 
                 {!task.files?.length && (
                   <div className="text-center py-6 px-4 text-muted-foreground border-t border-border">
-                    <p className="text-xs font-mono">No files yet. Upload one above.</p>
+                    <p className="text-xs text-muted-foreground">No files yet. Upload one above.</p>
                   </div>
                 )}
               </div>
@@ -557,7 +557,7 @@ export default function TaskDetail() {
           <div className="mx-auto w-full max-w-2xl">
             <DrawerHeader>
               <DrawerTitle className="text-xl">Upload History</DrawerTitle>
-              <DrawerDescription className="font-mono text-xs">
+              <DrawerDescription className="text-xs">
                 Every file version uploaded to this task, newest first.
               </DrawerDescription>
             </DrawerHeader>
@@ -571,7 +571,7 @@ export default function TaskDetail() {
                   <div className="absolute left-[11px] top-3 bottom-3 w-px bg-border" aria-hidden="true" />
                   {[...uploadHistory].map((upload) => (
                     <div key={upload.id} className="relative flex gap-4 py-3">
-                      <div className={`relative z-10 mt-1.5 w-6 h-6 rounded-full bg-background border-2 flex items-center justify-center shrink-0 ${
+                      <div className={`relative z-10 mt-1.5 w-6 h-6 rounded-full bg-background border flex items-center justify-center shrink-0 ${
                         upload.removedAt ? "border-destructive" : "border-primary"
                       }`}>
                         <div className={`w-2 h-2 rounded-full ${upload.removedAt ? "bg-destructive" : "bg-primary"}`} />

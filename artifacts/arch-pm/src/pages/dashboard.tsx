@@ -26,7 +26,7 @@ export default function Dashboard() {
          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
            <div>
              <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">Dashboard</h1>
-             <p className="text-muted-foreground font-mono">System overview and recent activity.</p>
+             <p className="text-muted-foreground">System overview and recent activity.</p>
            </div>
            {user?.role === "admin" && (
              <Link
@@ -41,9 +41,9 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <div className="bg-card border-2 border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
+          <div className="bg-card border border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
             <div className="flex items-center justify-between mb-4 text-muted-foreground">
-              <span className="font-bold uppercase tracking-wider text-xs">Projects</span>
+              <span className="font-medium text-xs tracking-wide">Projects</span>
               <FolderKanban className="w-5 h-5 text-primary" />
             </div>
             <div className="text-4xl font-bold text-foreground" data-testid="text-total-projects">
@@ -51,9 +51,9 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="bg-card border-2 border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
+          <div className="bg-card border border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
             <div className="flex items-center justify-between mb-4 text-muted-foreground">
-              <span className="font-bold uppercase tracking-wider text-xs">Tasks</span>
+              <span className="font-medium text-xs tracking-wide">Tasks</span>
               <CheckSquare className="w-5 h-5 text-accent" />
             </div>
             <div className="text-4xl font-bold text-foreground" data-testid="text-total-tasks">
@@ -61,9 +61,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-card border-2 border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
+          <div className="bg-card border border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
             <div className="flex items-center justify-between mb-4 text-muted-foreground">
-              <span className="font-bold uppercase tracking-wider text-xs">Files</span>
+              <span className="font-medium text-xs tracking-wide">Files</span>
               <Files className="w-5 h-5 text-chart-3" />
             </div>
             <div className="text-4xl font-bold text-foreground" data-testid="text-total-files">
@@ -71,9 +71,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-card border-2 border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
+          <div className="bg-card border border-border p-5 rounded-lg flex flex-col justify-between hover-elevate">
             <div className="flex items-center justify-between mb-4 text-muted-foreground">
-              <span className="font-bold uppercase tracking-wider text-xs">Team</span>
+              <span className="font-medium text-xs tracking-wide">Team</span>
               <Users className="w-5 h-5 text-chart-4" />
             </div>
             <div className="text-4xl font-bold text-foreground" data-testid="text-total-users">
@@ -85,8 +85,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Status Breakdowns */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-card border-2 border-border rounded-lg p-6">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6">Task Status</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-sm font-semibold text-muted-foreground mb-5">Task Status</h2>
               <div className="space-y-4">
                 {[
                   { label: "To Do", count: summary?.tasksByStatus.todo || 0, color: "bg-muted" },
@@ -111,8 +111,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-card border-2 border-border rounded-lg p-6">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-6">Project Status</h2>
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h2 className="text-sm font-semibold text-muted-foreground mb-5">Project Status</h2>
               <div className="space-y-4">
                 {[
                   { label: "Active", count: summary?.projectsByStatus.active || 0 },
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 ].map(status => (
                   <div key={status.label} className="flex justify-between items-center py-2 border-b border-border last:border-0">
                     <span className="font-medium text-sm">{status.label}</span>
-                    <span className="font-mono bg-secondary px-2 py-1 rounded text-xs">{status.count}</span>
+                    <span className="bg-secondary px-2 py-1 rounded text-xs font-medium">{status.count}</span>
                   </div>
                 ))}
               </div>
@@ -133,9 +133,9 @@ export default function Dashboard() {
 
           {/* Activity Feed */}
           <div className="lg:col-span-2">
-            <div className="bg-card border-2 border-border rounded-lg p-6 h-full min-h-[400px]">
+            <div className="bg-card border border-border rounded-lg p-6 h-full min-h-[400px]">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                   <Activity className="w-4 h-4" />
                   Recent Activity
                 </h2>
@@ -163,7 +163,7 @@ export default function Dashboard() {
                           <span className="font-bold text-primary">{log.entityName}</span>
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded">
+                          <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
                             {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                           </span>
                           {log.projectName && (
@@ -177,7 +177,7 @@ export default function Dashboard() {
                   ))
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
-                    <p className="font-mono text-sm">No recent activity found.</p>
+                    <p className="text-sm">No recent activity found.</p>
                   </div>
                 )}
               </div>

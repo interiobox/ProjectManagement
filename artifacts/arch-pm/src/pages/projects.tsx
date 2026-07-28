@@ -98,7 +98,7 @@ export default function Projects() {
               <FolderKanban className="w-8 h-8 text-primary" />
               Projects
             </h1>
-            <p className="text-muted-foreground font-mono mt-1">
+            <p className="text-muted-foreground mt-1">
               {projects?.length ?? 0} total project{projects?.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -112,18 +112,18 @@ export default function Projects() {
                 <Plus className="w-5 h-5" /> New Project
               </button>
             </DialogTrigger>
-            <DialogContent className="border-2 border-border p-6 sm:max-w-[480px]">
+            <DialogContent className="border border-border p-6 sm:max-w-[480px]">
               <DialogHeader>
                 <DialogTitle>Create New Project</DialogTitle>
               </DialogHeader>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Project Name
                   </label>
                   <input
                     {...form.register("name")}
-                    className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary transition-colors"
+                    className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary transition-colors"
                     placeholder="e.g. Meridian Tower Phase 2"
                     data-testid="input-project-name"
                   />
@@ -134,22 +134,22 @@ export default function Projects() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Description
                   </label>
                   <textarea
                     {...form.register("description")}
-                    className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary transition-colors min-h-[80px] resize-none"
+                    className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary transition-colors min-h-[80px] resize-none"
                     placeholder="Project scope and objectives..."
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Status
                   </label>
                   <select
                     {...form.register("status")}
-                    className="w-full bg-background border-2 border-border p-3 rounded outline-none focus:border-primary appearance-none"
+                    className="w-full bg-background border border-border p-3 rounded outline-none focus:border-primary appearance-none"
                   >
                     <option value="active">Active</option>
                     <option value="on_hold">On Hold</option>
@@ -183,7 +183,7 @@ export default function Projects() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search projects..."
-              className="w-full bg-card border-2 border-border pl-9 pr-4 py-2.5 rounded outline-none focus:border-primary text-sm transition-colors"
+              className="w-full bg-card border border-border pl-9 pr-4 py-2.5 rounded outline-none focus:border-primary text-sm transition-colors"
               data-testid="input-search"
             />
           </div>
@@ -193,7 +193,7 @@ export default function Projects() {
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={cn(
-                  "px-3 py-2 rounded text-xs font-bold uppercase tracking-wider transition-colors border-2",
+                  "px-3 py-2 rounded text-xs font-medium transition-colors border",
                   statusFilter === s
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card text-muted-foreground border-border hover:border-primary/50"
@@ -211,7 +211,7 @@ export default function Projects() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : filtered?.length === 0 ? (
-          <div className="bg-card border-2 border-dashed border-border rounded-lg py-20 text-center">
+          <div className="bg-card border border-dashed border-border rounded-lg py-20 text-center">
             <FolderKanban className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="font-bold text-muted-foreground">No projects found</p>
             <p className="text-sm text-muted-foreground mt-1">
@@ -228,7 +228,7 @@ export default function Projects() {
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
-                  className="group bg-card border-2 border-border rounded-lg p-5 flex flex-col hover:border-primary/50 transition-all hover:shadow-md"
+                  className="group bg-card border border-border rounded-lg p-5 flex flex-col hover:border-primary/50 transition-all hover:shadow-md"
                   data-testid={`project-card-${project.id}`}
                 >
                   {/* Top row */}
@@ -266,7 +266,7 @@ export default function Projects() {
                     {project.createdAt && (
                       <div className="flex items-center gap-1.5 ml-auto">
                         <Calendar className="w-3 h-3" />
-                        <span className="font-mono text-[10px]">
+                        <span className="text-[10px]">
                           {format(new Date(project.createdAt), "MMM d, yy")}
                         </span>
                       </div>
