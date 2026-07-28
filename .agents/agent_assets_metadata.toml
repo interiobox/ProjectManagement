@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "TklaORT1s8b2vsOup0Fio"
+uri = "file://PROMPT.md"
+type = "text"
+title = "ArchPM — Full Project Prompt"
