@@ -5,6 +5,7 @@ import { db, filesTable, fileUploadLogsTable, usersTable, tasksTable, projectsTa
 import { requireAuth } from "../lib/auth";
 import { logActivity } from "../lib/activity";
 import { getAuthorizedDrive, uploadFileToDrive } from "../lib/google-drive";
+import { isR2Configured, uploadToR2, deleteFromR2, extractR2Key, getPresignedUrl } from "../lib/r2";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -23,11 +24,24 @@ const upload = multer({
   limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
 });
 
-// Serve uploaded files
+// Serve locally-uploaded files (dev / fallback only)
 router.get("/uploads/:filename", (req, res): void => {
   const filePath = path.join(UPLOADS_DIR, path.basename(req.params.filename));
   if (!fs.existsSync(filePath)) { res.status(404).json({ error: "Not found" }); return; }
   res.sendFile(filePath);
+});
+
+// Proxy R2 files when no public bucket URL is configured.
+// Uses ?key= query param to avoid path-to-regexp v8 wildcard restrictions.
+router.get("/uploads/r2", requireAuth, async (req, res): Promise<void> => {
+  const key = req.query["key"] as string | undefined;
+  if (!key) { res.status(400).json({ error: "Missing key query param" }); return; }
+  try {
+    const url = await getPresignedUrl(key);
+    res.redirect(302, url);
+  } catch {
+    res.status(500).json({ error: "Failed to generate download URL" });
+  }
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,7 +124,7 @@ router.post(
 
       const drive = await getAuthorizedDrive();
       if (drive) {
-        // Look up project + task names for Drive folder structure
+        // 1st priority: Google Drive
         const [projectRow] = await db
           .select({ name: projectsTable.name })
           .from(projectsTable)
@@ -121,7 +135,6 @@ router.post(
           .from(tasksTable)
           .where(eq(tasksTable.id, taskId));
 
-        // Retrieve cached root folder id (so we don't recreate the ArchPM folder each time)
         const [tokenRow] = await db.select().from(googleDriveTokensTable).limit(1);
 
         const result = await uploadFileToDrive(drive, {
@@ -135,15 +148,20 @@ router.post(
 
         url = result.webViewLink;
 
-        // Cache the root folder id for subsequent uploads
         if (tokenRow && !tokenRow.driveRootFolderId) {
           await db
             .update(googleDriveTokensTable)
             .set({ driveRootFolderId: result.rootFolderId, updatedAt: new Date() })
             .where(eq(googleDriveTokensTable.id, tokenRow.id));
         }
+      } else if (isR2Configured()) {
+        // 2nd priority: Cloudflare R2
+        const hash = createHash("md5").update(Date.now() + name).digest("hex").slice(0, 8);
+        const ext = path.extname(name);
+        const key = `tasks/${taskId}/${hash}${ext}`;
+        url = await uploadToR2(req.file.buffer, key, mimeType);
       } else {
-        // No Drive connection — save buffer to local disk
+        // Fallback: local disk (dev only — ephemeral on Render/Railway)
         const hash = createHash("md5").update(Date.now() + name).digest("hex").slice(0, 8);
         const ext = path.extname(name);
         const filename = `${hash}${ext}`;
@@ -253,17 +271,23 @@ router.delete("/projects/:projectId/tasks/:taskId/files/:fileId", requireAuth, a
     await tx.delete(filesTable).where(eq(filesTable.id, fileId));
   });
 
-  // Multipart uploads are stored locally. JSON fallback URLs may point to
-  // external storage, so only remove files served by this app.
+  // Clean up the stored file from whichever backend it lives in.
   if (file.url) {
     try {
-      const pathname = new URL(file.url, "http://localhost").pathname;
-      if (pathname.startsWith("/api/uploads/")) {
-        const storedPath = path.join(UPLOADS_DIR, path.basename(pathname));
-        if (fs.existsSync(storedPath)) fs.unlinkSync(storedPath);
+      const r2Key = extractR2Key(file.url);
+      if (r2Key) {
+        // R2 object
+        await deleteFromR2(r2Key);
+      } else {
+        // Local disk (dev fallback)
+        const pathname = new URL(file.url, "http://localhost").pathname;
+        if (pathname.startsWith("/api/uploads/")) {
+          const storedPath = path.join(UPLOADS_DIR, path.basename(pathname));
+          if (fs.existsSync(storedPath)) fs.unlinkSync(storedPath);
+        }
       }
     } catch {
-      // A malformed or external URL has no local file to remove.
+      // A malformed or external URL — nothing to remove locally.
     }
   }
 

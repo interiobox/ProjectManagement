@@ -16,9 +16,8 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-// Idempotently seed required bootstrap data before accepting traffic.
-await seedAdminUser();
-
+// Start listening immediately so health checks pass right away.
+// Seeding runs after the server is up — non-critical for startup readiness.
 app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
@@ -26,4 +25,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  seedAdminUser().catch((seedErr) => {
+    logger.error({ err: seedErr }, "Failed to seed admin user");
+  });
 });

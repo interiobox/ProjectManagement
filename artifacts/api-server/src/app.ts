@@ -42,8 +42,9 @@ if (process.env.NODE_ENV === "production") {
 
   app.use(express.static(staticDir));
 
-  // SPA fallback — any non-API path serves index.html so client-side routing works
-  app.get("*", (_req, res) => {
+  // SPA fallback — any non-API path serves index.html so client-side routing works.
+  // Express 5 / path-to-regexp v8 requires named wildcards; use *splat syntax.
+  app.get("*splat", (_req, res) => {
     res.sendFile(path.join(staticDir, "index.html"));
   });
 }
