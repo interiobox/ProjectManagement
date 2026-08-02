@@ -1,0 +1,1 @@
+{"version":3,"file":"projectInput.d.ts","sourceRoot":"","sources":["../../../src/generated/types/projectInput.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,sBAAsB,CAAC;AAE/D,MAAM,WAAW,YAAY;IAC3B,mBAAmB;IACnB,IAAI,EAAE,MAAM,CAAC;IACb,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,MAAM,CAAC,EAAE,kBAAkB,CAAC;CAC7B"}

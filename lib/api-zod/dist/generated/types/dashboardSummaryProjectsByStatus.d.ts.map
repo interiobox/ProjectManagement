@@ -1,0 +1,1 @@
+{"version":3,"file":"dashboardSummaryProjectsByStatus.d.ts","sourceRoot":"","sources":["../../../src/generated/types/dashboardSummaryProjectsByStatus.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,MAAM,MAAM,gCAAgC,GAAG;IAC7C,MAAM,EAAE,MAAM,CAAC;IACf,OAAO,EAAE,MAAM,CAAC;IAChB,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,MAAM,CAAC;CAClB,CAAC"}
