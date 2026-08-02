@@ -1423,6 +1423,10 @@ export declare const GetFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: zod.ZodNumber;
     uploadedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
     createdAt: zod.ZodDate;
+    fileId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedAt: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    removedById: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
 }, "strip", zod.ZodTypeAny, {
     id: number;
     name: string;
@@ -1434,6 +1438,10 @@ export declare const GetFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }, {
     id: number;
     name: string;
@@ -1445,6 +1453,10 @@ export declare const GetFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }>;
 export declare const GetFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     id: zod.ZodNumber;
@@ -1457,6 +1469,10 @@ export declare const GetFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: zod.ZodNumber;
     uploadedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
     createdAt: zod.ZodDate;
+    fileId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedAt: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    removedById: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
 }, "strip", zod.ZodTypeAny, {
     id: number;
     name: string;
@@ -1468,6 +1484,10 @@ export declare const GetFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }, {
     id: number;
     name: string;
@@ -1479,6 +1499,10 @@ export declare const GetFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }>, "many">;
 /**
  * @summary Get the complete upload history for a task
@@ -1504,6 +1528,10 @@ export declare const GetTaskFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: zod.ZodNumber;
     uploadedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
     createdAt: zod.ZodDate;
+    fileId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedAt: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    removedById: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
 }, "strip", zod.ZodTypeAny, {
     id: number;
     name: string;
@@ -1515,6 +1543,10 @@ export declare const GetTaskFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }, {
     id: number;
     name: string;
@@ -1526,6 +1558,10 @@ export declare const GetTaskFileHistoryResponseItem: zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }>;
 export declare const GetTaskFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     id: zod.ZodNumber;
@@ -1538,6 +1574,10 @@ export declare const GetTaskFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: zod.ZodNumber;
     uploadedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
     createdAt: zod.ZodDate;
+    fileId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedAt: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    removedById: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    removedByName: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
 }, "strip", zod.ZodTypeAny, {
     id: number;
     name: string;
@@ -1549,6 +1589,10 @@ export declare const GetTaskFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }, {
     id: number;
     name: string;
@@ -1560,6 +1604,10 @@ export declare const GetTaskFileHistoryResponse: zod.ZodArray<zod.ZodObject<{
     uploadedById: number;
     url?: string | null | undefined;
     uploadedByName?: string | null | undefined;
+    fileId?: number | null | undefined;
+    removedAt?: Date | null | undefined;
+    removedById?: number | null | undefined;
+    removedByName?: string | null | undefined;
 }>, "many">;
 /**
  * @summary Get activity log for a project

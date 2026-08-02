@@ -602,7 +602,11 @@ export const GetFileHistoryResponseItem = zod.object({
   "taskId": zod.number(),
   "uploadedById": zod.number(),
   "uploadedByName": zod.string().nullish(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "fileId": zod.number().nullish(),
+  "removedAt": zod.coerce.date().nullish(),
+  "removedById": zod.number().nullish(),
+  "removedByName": zod.string().nullish()
 })
 export const GetFileHistoryResponse = zod.array(GetFileHistoryResponseItem)
 
@@ -625,7 +629,11 @@ export const GetTaskFileHistoryResponseItem = zod.object({
   "taskId": zod.number(),
   "uploadedById": zod.number(),
   "uploadedByName": zod.string().nullish(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "fileId": zod.number().nullish(),
+  "removedAt": zod.coerce.date().nullish(),
+  "removedById": zod.number().nullish(),
+  "removedByName": zod.string().nullish()
 })
 export const GetTaskFileHistoryResponse = zod.array(GetTaskFileHistoryResponseItem)
 

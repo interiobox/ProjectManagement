@@ -18,5 +18,13 @@ export interface FileVersion {
     /** @nullable */
     uploadedByName?: string | null;
     createdAt: Date;
+    /** @nullable */
+    fileId?: number | null;
+    /** @nullable */
+    removedAt?: Date | null;
+    /** @nullable */
+    removedById?: number | null;
+    /** @nullable */
+    removedByName?: string | null;
 }
 //# sourceMappingURL=fileVersion.d.ts.map

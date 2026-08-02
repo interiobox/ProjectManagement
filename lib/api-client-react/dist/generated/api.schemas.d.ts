@@ -317,6 +317,14 @@ export interface FileVersion {
     /** @nullable */
     uploadedByName?: string | null;
     createdAt: string;
+    /** @nullable */
+    fileId?: number | null;
+    /** @nullable */
+    removedAt?: string | null;
+    /** @nullable */
+    removedById?: number | null;
+    /** @nullable */
+    removedByName?: string | null;
 }
 export interface FileInput {
     /** @minLength 1 */
