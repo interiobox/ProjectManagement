@@ -39,7 +39,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- **Run schema push before first API start** (and after any rollback): `pnpm --filter @workspace/db run push`. Without it the API boots but silently fails to seed the admin user and returns 500 on login.
 
 ## Pointers
 
